@@ -1,0 +1,104 @@
+{
+  "name": "SC-03 Error Recovery — Artefakt",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "sc03-001",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [-608, 112]
+    },
+    {
+      "parameters": {
+        "operation": "initialize",
+        "context": "Fetch the top-5 overdue invoices from the database (status='overdue', sorted by amount DESC) and push them to the ERP collection system. Handle any database errors gracefully.",
+        "maxSteps": 10,
+        "metadata": "{\"scenarioId\": \"SC-03\", \"approach\": \"artefact\"}"
+      },
+      "id": "sc03-002",
+      "name": "AgentState: Initialize",
+      "type": "CUSTOM.agentStateNode",
+      "typeVersion": 1,
+      "position": [-368, 112]
+    },
+    {
+      "parameters": {
+        "openAiApiKey": "={{ $env.OPENAI_API_KEY }}",
+        "llmModel": "gpt-4o-mini",
+        "temperature": 0,
+        "agentState": "={{ JSON.stringify($json) }}",
+        "observation": "={{ $json.observation ?? '' }}",
+        "tools": "[{\"name\":\"sql_query\",\"description\":\"Execute SQL against the database. Input: {\\\"query\\\": \\\"<SQL>\\\"}. May return a connection error — use retry_with_fallback if it fails.\"},{\"name\":\"retry_with_fallback\",\"description\":\"Retry last failed database operation with fallback. Input: {\\\"originalAction\\\": \\\"sql_query\\\", \\\"fallbackQuery\\\": \\\"<SQL>\\\"}\"},{\"name\":\"erp_push\",\"description\":\"Push data to the ERP system. Input: {\\\"payload\\\": [...]}\"}]",
+        "maxIterations": 10,
+        "stopCondition": "",
+        "humanInTheLoop": false
+      },
+      "id": "sc03-003",
+      "name": "ReAct Loop",
+      "type": "CUSTOM.reActLoopNode",
+      "typeVersion": 1,
+      "position": [-160, 112]
+    },
+    {
+      "parameters": {
+        "jsCode": "// SC-03 Tool Simulator with error injection on first sql_query call\nconst action = $input.item.json.action;\n\n// Check history to detect if sql_query was already attempted\nlet state;\ntry {\n  const s = $input.item.json.agentState;\n  state = typeof s === 'string' ? JSON.parse(s) : (s ?? {});\n} catch(e) { state = {}; }\nconst history = state.history ?? [];\nconst previousSqlAttempt = history.some(step => step.action === 'sql_query');\n\nconst overdueInvoices = [\n  {invoice_id: 2001, customer: 'Delta GmbH',   amount_eur: 15000, due_date: '2024-01-15', status: 'overdue'},\n  {invoice_id: 2002, customer: 'Epsilon AG',    amount_eur: 8500,  due_date: '2024-02-01', status: 'overdue'},\n  {invoice_id: 2003, customer: 'Zeta KG',       amount_eur: 6200,  due_date: '2024-02-10', status: 'overdue'},\n  {invoice_id: 2004, customer: 'Eta GmbH',      amount_eur: 4800,  due_date: '2024-02-20', status: 'overdue'},\n  {invoice_id: 2005, customer: 'Theta AG',      amount_eur: 3100,  due_date: '2024-03-01', status: 'overdue'}\n];\n\nconst mockResponses = {\n  sql_query: previousSqlAttempt\n    ? JSON.stringify({rows: overdueInvoices})                                              // success on retry\n    : JSON.stringify({__error: true, message: 'Database connection timeout: host db.internal:5432 unreachable after 30s'}),  // error on first call\n  retry_with_fallback: JSON.stringify({rows: overdueInvoices}),\n  erp_push: JSON.stringify({status: 'ok', recordsImported: 5})\n};\n\nconst observation = mockResponses[action] ?? JSON.stringify({error: 'Unknown tool: ' + action});\n\nreturn [{ json: { ...$input.item.json, observation } }];"
+      },
+      "id": "sc03-004",
+      "name": "Tool Simulator (SC-03)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [80, 0]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "currentState": "={{ JSON.stringify($json.agentState) }}",
+        "thought": "={{ $json.thought }}",
+        "action": "={{ $json.action }}",
+        "actionInput": "={{ JSON.stringify($json.actionInput) }}",
+        "observation": "={{ $json.observation }}"
+      },
+      "id": "sc03-005",
+      "name": "AgentState: Update",
+      "type": "CUSTOM.agentStateNode",
+      "typeVersion": 1,
+      "position": [288, 0]
+    },
+    {
+      "parameters": {
+        "jsCode": "const state = $input.item.json;\nconst finalAnswer = state.finalAnswer ?? '';\nconst success = finalAnswer.toLowerCase().includes('overdue') || finalAnswer.toLowerCase().includes('invoice');\nconst history = state.agentState?.history ?? state.history ?? [];\nconst hadError = history.some(s => {\n  try { const obs = JSON.parse(s.observation ?? '{}'); return obs.__error === true; } catch(e) { return false; }\n});\nconst recovered = hadError && success;\nconsole.log('=== SC-03 BENCHMARK RESULT ===');\nconsole.log('Final Answer:', finalAnswer);\nconsole.log('Steps:', state.stepCount);\nconsole.log('Error injected:', hadError);\nconsole.log('Recovered:', recovered);\nreturn [{ json: { finalAnswer, stepCount: state.stepCount, success, errorRecoverySuccess: recovered, reminder: 'Fill in evaluation/results/SC-03_artefact_run001.json' } }];"
+      },
+      "id": "sc03-006",
+      "name": "Record Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [80, 240]
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [[{"node": "AgentState: Initialize", "type": "main", "index": 0}]]
+    },
+    "AgentState: Initialize": {
+      "main": [[{"node": "ReAct Loop", "type": "main", "index": 0}]]
+    },
+    "ReAct Loop": {
+      "main": [
+        [{"node": "Tool Simulator (SC-03)", "type": "main", "index": 0}],
+        [{"node": "Record Result", "type": "main", "index": 0}]
+      ]
+    },
+    "Tool Simulator (SC-03)": {
+      "main": [[{"node": "AgentState: Update", "type": "main", "index": 0}]]
+    },
+    "AgentState: Update": {
+      "main": [[{"node": "ReAct Loop", "type": "main", "index": 0}]]
+    }
+  },
+  "active": false,
+  "settings": {"executionOrder": "v1"},
+  "meta": {"instanceId": "16bc4f9df83bcae0c8ee331a406544d1f33594270d428b20ec93e043852df6a7"},
+  "tags": [],
+  "_comment": "SC-03 Error Recovery — Artefakt. First sql_query call returns timeout error; agent must use retry_with_fallback. State is persisted across the error."
+}

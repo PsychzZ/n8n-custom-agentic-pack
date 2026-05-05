@@ -1,0 +1,44 @@
+{
+  "scenarioId": "SC-02",
+  "name": "RAG Question Answering",
+  "description": "Agent answers domain-specific questions using internal documents retrieved from the ChromaDB vector store. Tests RAG retrieval accuracy and answer quality.",
+  "researchContext": "Measures the retrieval effectiveness of the native VectorStoreNode versus the HTTP-workaround baseline. Based on the RAG evaluation methodology of Lewis et al. (2020).",
+  "approaches": ["baseline", "artefact", "reference"],
+  "maxSteps": 5,
+  "tools": [
+    {
+      "name": "vector_search",
+      "description": "Semantic similarity search over internal documents. Input: {\"query\": \"<question>\", \"topK\": 3}. Returns [{\"id\", \"document\", \"distance\"}]."
+    }
+  ],
+  "initialContext": "Answer the following question using only the information in the internal knowledge base: What was the total revenue of Acme GmbH in Q2 2024, and which product category contributed the most?",
+  "documents": [
+    {
+      "id": "doc-q2-revenue",
+      "text": "Acme GmbH Q2 2024 Revenue Report: Total revenue reached €2.4 million. The Software Licenses category contributed 58% of revenue (€1.39M), followed by Professional Services at 32% (€0.77M) and Hardware at 10% (€0.24M).",
+      "metadata": {"source": "erp", "quarter": "Q2-2024", "company": "Acme GmbH"}
+    },
+    {
+      "id": "doc-q1-revenue",
+      "text": "Acme GmbH Q1 2024 Revenue Report: Total revenue was €1.9 million. Software Licenses accounted for 55% (€1.05M).",
+      "metadata": {"source": "erp", "quarter": "Q1-2024", "company": "Acme GmbH"}
+    },
+    {
+      "id": "doc-competitor",
+      "text": "Competitor analysis Q2 2024: Beta AG reported €1.8M total revenue, primarily from Hardware (45%).",
+      "metadata": {"source": "market-report", "quarter": "Q2-2024"}
+    }
+  ],
+  "expectedFinalAnswer": "Acme GmbH total revenue in Q2 2024 was €2.4 million. Software Licenses was the top-contributing category at 58% (€1.39M).",
+  "successCriteria": {
+    "minStepsToCompletion": 2,
+    "maxStepsToCompletion": 4,
+    "requiredActions": ["vector_search"],
+    "finalAnswerMustContain": "2.4"
+  },
+  "metrics": {
+    "quantitative": ["token_count_total", "node_count", "steps_to_completion", "success", "latency_ms"],
+    "qualitative": ["transparency_score", "controllability_score", "integration_score"],
+    "ragSpecific": ["precision_at_1", "precision_at_3", "answer_faithfulness"]
+  }
+}

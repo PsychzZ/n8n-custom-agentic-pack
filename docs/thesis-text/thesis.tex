@@ -1,0 +1,1990 @@
+% =============================================================================
+% BACHELORARBEIT
+% Entwicklung und Evaluation einer zustandsorientierten Agenten-Architektur
+% durch spezialisierte Custom-Nodes in n8n
+% =============================================================================
+
+\documentclass[12pt,a4paper,oneside]{report}
+
+% ---------------------------------------------------------------------------
+% Pakete
+% ---------------------------------------------------------------------------
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[ngerman]{babel}
+\usepackage{geometry}
+\usepackage{setspace}
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage[protrusion=true,expansion=false]{microtype}
+\usepackage{csquotes}
+\usepackage{parskip}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{tocloft}
+\usepackage{acronym}
+\usepackage{float}
+\usepackage{wrapfig}
+
+% ---------------------------------------------------------------------------
+% Seitenlayout
+% ---------------------------------------------------------------------------
+\geometry{
+  a4paper,
+  left=3.0cm,
+  right=2.5cm,
+  top=2.5cm,
+  bottom=2.5cm,
+  headsep=1cm,
+  headheight=14.5pt
+}
+
+\onehalfspacing
+
+% ---------------------------------------------------------------------------
+% Kapitel-Formatierung (verhindert den grossen Leerraum oben bei \chapter)
+% ---------------------------------------------------------------------------
+\titleformat{\chapter}[display]
+  {\normalfont\huge\bfseries}
+  {\chaptertitlename\ \thechapter}
+  {10pt}
+  {\Huge}
+\titlespacing*{\chapter}{0pt}{0pt}{20pt}
+
+% Abschnitte etwas kompakter
+\titlespacing*{\section}{0pt}{16pt}{6pt}
+\titlespacing*{\subsection}{0pt}{12pt}{4pt}
+\titlespacing*{\subsubsection}{0pt}{10pt}{2pt}
+
+% ---------------------------------------------------------------------------
+% Kopf- und Fußzeile
+% ---------------------------------------------------------------------------
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\nouppercase{\leftmark}}
+\fancyhead[R]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% ---------------------------------------------------------------------------
+% Code-Listing-Stil
+% ---------------------------------------------------------------------------
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.97,0.97,0.97}
+\definecolor{codegreen}{rgb}{0,0.5,0}
+\definecolor{navyblue}{rgb}{0.0,0.0,0.5}
+
+\lstdefinestyle{typescript}{
+  backgroundcolor=\color{backcolour},
+  commentstyle=\color{codegreen},
+  keywordstyle=\color{navyblue}\bfseries,
+  numberstyle=\tiny\color{codegray},
+  stringstyle=\color{codepurple},
+  basicstyle=\ttfamily\footnotesize,
+  breakatwhitespace=false,
+  breaklines=true,
+  captionpos=b,
+  keepspaces=true,
+  numbers=left,
+  numbersep=5pt,
+  showspaces=false,
+  showstringspaces=false,
+  showtabs=false,
+  tabsize=2,
+  frame=single,
+  rulecolor=\color{gray!40},
+}
+
+\lstset{style=typescript}
+
+% ---------------------------------------------------------------------------
+% Hyperref-Einstellungen
+% ---------------------------------------------------------------------------
+\hypersetup{
+  colorlinks=true,
+  linkcolor=navyblue,
+  citecolor=navyblue,
+  urlcolor=navyblue,
+  pdftitle={Entwicklung und Evaluation einer zustandsorientierten Agenten-Architektur durch spezialisierte Custom-Nodes in n8n},
+  pdfauthor={[Name eintragen]},
+}
+
+% =============================================================================
+% BEGINN DES DOKUMENTS
+% =============================================================================
+\begin{document}
+
+% ---------------------------------------------------------------------------
+% Titelseite
+% ---------------------------------------------------------------------------
+\begin{titlepage}
+  \centering
+  \vspace*{1cm}
+
+  {\Large \textbf{[Universität Bremen]}}\\[0.5cm]
+  {\large Fachbereich Informatik}\\[2cm]
+
+  \rule{\textwidth}{1.5pt}\\[0.4cm]
+  {\huge \textbf{Entwicklung und Evaluation einer\\[0.3cm]
+  zustandsorientierten Agenten-Architektur\\[0.3cm]
+  durch spezialisierte Custom-Nodes in n8n}}\\[0.4cm]
+  \rule{\textwidth}{1.5pt}\\[2cm]
+
+  {\large \textbf{Bachelorarbeit}}\\[0.5cm]
+  {\normalsize im Studiengang Vollfach Informatik}\\[2cm]
+
+  \begin{tabular}{ll}
+    Vorgelegt von:    & Max Lehmann\\
+    Matrikelnummer:   & 6187272\\
+    Erstgutachter:    & Prof. Dr. Sebastian Maneth\\
+    Zweitgutachter:   & Noch Unbekannt\\
+    Abgabedatum:      & 01. Juni 2026\\
+  \end{tabular}
+
+  \vfill
+  {\small \today}
+\end{titlepage}
+
+% ---------------------------------------------------------------------------
+% Eidesstattliche Erklärung
+% ---------------------------------------------------------------------------
+\thispagestyle{empty}
+\chapter*{Eidesstattliche Erklärung}
+\addcontentsline{toc}{chapter}{Eidesstattliche Erklärung}
+
+Ich erkläre hiermit an Eides statt, dass ich die vorliegende Bachelorarbeit
+selbstständig und ohne unzulässige fremde Hilfe angefertigt habe. Alle verwendeten
+Quellen sind vollständig angegeben; wörtlich oder sinngemäß übernommene Stellen sind
+als solche kenntlich gemacht.
+
+\vspace{2cm}
+\noindent
+Bremen, 08.04.2026
+
+\vspace{1.5cm}
+\noindent\rule{7cm}{0.4pt}\\
+Max Lehmann
+
+\newpage
+
+% ---------------------------------------------------------------------------
+% Kurzfassung / Abstract
+% ---------------------------------------------------------------------------
+\thispagestyle{empty}
+\chapter*{Kurzfassung}
+\addcontentsline{toc}{chapter}{Kurzfassung}
+
+Die vorliegende Bachelorarbeit entwickelt und evaluiert eine zustandsorientierte
+Agenten-Architektur für die Low-Code-Plattform n8n. Auf Basis der Design-Science-Research-Methodik
+nach Hevner et al.\ (2004) werden drei spezialisierte Custom Nodes implementiert:
+\textit{AgentStateNode}, \textit{VectorStoreNode} und \textit{ReActLoopNode}. Diese
+realisieren gemeinsam das ReAct-Muster (Yao et al., 2022) innerhalb des visuellen
+n8n-Workflow-Editors und ermöglichen so transparente, kontrollierbare und in
+Unternehmenssysteme integrierbare KI-Agenten.
+
+Im Gegensatz zu autonomen Agenten-Frameworks wie LangChain, AutoGPT oder Claude Code,
+die Entscheidungsprozesse in einer Black Box verbergen, macht das entwickelte Artefakt
+jeden Thought-Action-Observation-Zyklus als diskreten Workflow-Schritt sichtbar.
+Die Auswertung von drei Benchmark-Szenarien zeigt, dass das Artefakt bei Transparenz
+und Kontrollierbarkeit klare Vorteile gegenüber der Standard-n8n-Lösung aufweist. Diese
+Vorteile gehen jedoch mit einem größeren Workflow und teils höherer Latenz einher; in
+Szenarien ohne komplexe Zustandsverwaltung ist der schlankere Basis-Ansatz weiterhin
+die einfachere Wahl.
+
+\vspace{1cm}
+\noindent\textbf{Schlüsselwörter:} KI-Agenten, n8n, Custom Nodes, ReAct, RAG,
+zustandsorientierte Architektur, Low-Code, LLM, Design Science Research
+
+\vspace{1.5cm}
+\noindent\textbf{Abstract (English)}
+
+This bachelor's thesis develops and evaluates a stateful agent architecture for the
+low-code platform n8n. Following the Design Science Research methodology of Hevner et al.\
+(2004), three specialised custom nodes are implemented: \textit{AgentStateNode},
+\textit{VectorStoreNode}, and \textit{ReActLoopNode}. Together, they realise the
+ReAct pattern (Yao et al., 2022) within n8n's visual workflow editor, enabling
+transparent, controllable, and enterprise-integrable AI agents.
+
+Unlike autonomous agent frameworks such as LangChain, AutoGPT, or Claude Code, which
+conceal decision processes inside a black box, the developed artefact makes every
+Thought-Action-Observation cycle visible as a discrete workflow step. The evaluation of
+three benchmark scenarios shows that the artefact achieves higher transparency and
+controllability scores, though at the cost of greater workflow complexity and, in some
+scenarios, longer execution times.
+
+\newpage
+
+% ---------------------------------------------------------------------------
+% Inhaltsverzeichnis
+% ---------------------------------------------------------------------------
+\tableofcontents
+\newpage
+
+% ---------------------------------------------------------------------------
+% Abbildungsverzeichnis
+% ---------------------------------------------------------------------------
+\listoffigures
+\addcontentsline{toc}{chapter}{Abbildungsverzeichnis}
+\newpage
+
+% ---------------------------------------------------------------------------
+% Tabellenverzeichnis
+% ---------------------------------------------------------------------------
+\listoftables
+\addcontentsline{toc}{chapter}{Tabellenverzeichnis}
+\newpage
+
+% ---------------------------------------------------------------------------
+% Abkürzungsverzeichnis
+% ---------------------------------------------------------------------------
+\chapter*{Abkürzungsverzeichnis}
+\addcontentsline{toc}{chapter}{Abkürzungsverzeichnis}
+
+\begin{acronym}[HITL]
+  \acro{API}{Application Programming Interface}
+  \acro{CoT}{Chain-of-Thought}
+  \acro{DSR}{Design Science Research}
+  \acro{ERP}{Enterprise Resource Planning}
+  \acro{HITL}{Human-in-the-Loop}
+  \acro{JSON}{JavaScript Object Notation}
+  \acro{KI}{Künstliche Intelligenz}
+  \acro{LLM}{Large Language Model}
+  \acro{RAG}{Retrieval-Augmented Generation}
+  \acro{SDK}{Software Development Kit}
+  \acro{SQL}{Structured Query Language}
+  \acro{TAO}{Thought-Action-Observation}
+  \acro{UUID}{Universally Unique Identifier}
+\end{acronym}
+
+\newpage
+
+% =============================================================================
+% KAPITEL 1: EINLEITUNG
+% =============================================================================
+\chapter{Einleitung}
+
+\section{Motivation und Problemstellung}
+
+Sprachmodelle (\acf{LLM}) sind in den letzten Jahren zunehmend in betriebliche
+Softwareprozesse eingeflossen und werden inzwischen auch in der Unternehmens-IT
+ernsthaft diskutiert. Systeme wie AutoGPT, LangChain Agents
+oder der native \textit{AI Agent Node} von n8n versprechen eine weitgehend selbstständige
+Aufgabenbearbeitung, indem sie \ac{LLM}s mit externen Werkzeugen -- sogenannten Tools
+-- verbinden und so mehrstufige Aufgaben autonom abarbeiten können \cite{wang2023survey}.
+
+In der Praxis offenbaren diese Ansätze jedoch erhebliche Schwächen, sobald sie in
+produktive Unternehmensumgebungen überführt werden sollen:
+
+\begin{itemize}
+  \item \textbf{Fehlende Transparenz:} Autonome Agenten wie AutoGPT oder Claude Code
+    treffen ihre Entscheidungen intern, ohne dass ein menschlicher Operator die einzelnen
+    Reasoning-Schritte nachvollziehen kann. Audit-Anforderungen und regulatorische
+    Vorgaben -- etwa im Finanz- oder Gesundheitsbereich -- sind damit schwer zu erfüllen.
+
+  \item \textbf{Mangelnde Kontrollierbarkeit:} Sobald ein Agenten-Framework gestartet
+    ist, fehlen granulare Möglichkeiten, einzelne Entscheidungen zu genehmigen oder
+    abzulehnen. Dies ist insbesondere bei irreversiblen Aktionen -- wie dem Schreiben
+    in eine Produktionsdatenbank oder dem Versenden von E-Mails -- problematisch.
+
+  \item \textbf{Schlechte Prozessintegration:} Bestehende Frameworks setzen auf
+    Python-Code und eigene Bibliotheken. Die Integration in bestehende IT-Landschaften
+    (ERP-Systeme, SQL-Datenbanken, REST-\ac{API}s) erfordert erheblichen Entwicklungsaufwand
+    und ist nicht ohne Weiteres für Nicht-Programmierer zugänglich.
+
+  \item \textbf{Zustandslosigkeit in Workflow-Engines:} Standard-Workflow-Orchestratoren
+    wie n8n behandeln jeden Ausführungsschritt isoliert. Es existiert kein nativer
+    Mechanismus, um den Fortschritt eines mehrstufigen Agenten über mehrere
+    Node-Ausführungen hinweg zu speichern und bei Fehlern wiederaufzunehmen.
+\end{itemize}
+
+Daraus ergibt sich die Fragestellung dieser Arbeit: Lässt sich ein LLM-gesteuerter
+Agent innerhalb einer bestehenden Low-Code-Plattform betreiben, der seinen Zustand
+über mehrere Schritte hinweg behält, jeden Entscheidungsschritt nachvollziehbar macht
+und dabei die vorhandenen Integrationsmöglichkeiten der Plattform nutzen kann?
+
+\section{Zielsetzung}
+
+Ziel dieser Arbeit ist die Entwicklung und Evaluation eines \textit{n8n Agentic Pack}
+-- eines Pakets aus drei spezialisierten Custom Nodes, das eine zustandsorientierte
+Agenten-Architektur innerhalb des n8n-Workflow-Editors realisiert. Die drei Nodes
+bilden ein koordiniertes System:
+
+\begin{enumerate}
+  \item \textbf{AgentStateNode:} Implementiert ein persistentes Zustandsmodell für
+    den laufenden Agenten-Prozess, basierend auf dem Memory-Stream-Konzept von Park
+    et al.\ \cite{park2023generative}.
+
+  \item \textbf{VectorStoreNode:} Stellt eine native ChromaDB-Integration für die
+    Einbettung, Speicherung und semantische Suche von Dokumenten bereit und realisiert
+    damit die Retriever-Komponente einer \ac{RAG}-Architektur nach Lewis et al.\
+    \cite{lewis2020retrieval}.
+
+  \item \textbf{ReActLoopNode:} Orchestriert Thought\,$\to$\,Action\,$\to$\,Observation-Zyklen
+    nach dem ReAct-Muster (Yao et al., 2022) und macht jeden Schritt als diskretes
+    Workflow-Element im n8n-Canvas sichtbar \cite{yao2022react}.
+\end{enumerate}
+
+\section{Forschungsfrage}
+
+\begin{displayquote}
+\textit{Wie können spezialisierte Custom Nodes eine effiziente, zustandsorientierte
+Agenten-Architektur in n8n ermöglichen, und welche messbaren Vorteile ergeben sich
+hinsichtlich Transparenz und Prozessintegration gegenüber Standardimplementierungen
+und autonomen Agenten-Werkzeugen?}
+\end{displayquote}
+
+Die Forschungsfrage lässt sich in drei Teilfragen untergliedern:
+
+\begin{description}
+  \item[TF1 -- Machbarkeit:] Lässt sich das ReAct-Muster vollständig und korrekt
+    innerhalb des n8n-Custom-Node-Mechanismus implementieren?
+  \item[TF2 -- Transparenz:] Erzeugt die Artefakt-Implementierung eine nachvollziehbar
+    höhere Transparenz der Agenten-Entscheidungen gegenüber der Baseline?
+  \item[TF3 -- Integration:] Reduziert die native SDK-Integration des VectorStoreNode
+    den Implementierungsaufwand gegenüber der HTTP-Workaround-Baseline messbar?
+\end{description}
+
+\section{Wissenschaftliche Einordnung}
+
+Die Arbeit folgt der \acf{DSR}-Methodik nach Hevner et al.\ \cite{hevner2004design},
+die IT-Artefakte als primäres Forschungsergebnis definiert und deren rigorose
+Evaluation gegenüber einer Baseline einfordert. Hevner et al.\ formulieren sieben
+Leitlinien für DSR-Forschung; die vorliegende Arbeit adressiert insbesondere:
+
+\begin{itemize}
+  \item \textbf{Leitlinie 1 -- Design als Artefakt:} Das n8n-Agentic-Pack ist das
+    primäre Forschungsergebnis.
+  \item \textbf{Leitlinie 2 -- Problementlevanz:} Transparenz und Kontrollierbarkeit
+    von KI-Agenten sind aktuelle Herausforderungen in der Praxis.
+  \item \textbf{Leitlinie 3 -- Design-Evaluation:} Drei Benchmark-Szenarien vergleichen
+    Artefakt, Baseline und Referenz-Implementierung.
+  \item \textbf{Leitlinie 6 -- Design als Suchprozess:} Die iterative Entwicklung
+    der drei Nodes folgt dem DSR-Zyklus aus Aufbau, Evaluation und Verfeinerung.
+\end{itemize}
+
+\section{Aufbau der Arbeit}
+
+\begin{table}[H]
+  \centering
+  \caption{Struktur der Bachelorarbeit}
+  \label{tab:aufbau}
+  \begin{tabularx}{\textwidth}{clX}
+    \toprule
+    \textbf{Kapitel} & \textbf{Titel} & \textbf{Inhalt} \\
+    \midrule
+    2 & Theoretische Grundlagen  & LLMs, ReAct, RAG, Memory, n8n-Abgrenzung,
+                                   Agenten-Vergleich, \ac{DSR} \\
+    3 & AgentStateNode           & Design, Implementierung, Tests, Designalternativen \\
+    4 & VectorStoreNode          & Design, Implementierung, Tests, Plattformvergleich \\
+    5 & ReActLoopNode            & Design, Implementierung, Tests, Architekturvergleich \\
+    6 & Evaluation               & Szenarien, Metriken, Ergebnisse, Hypothesentest \\
+    7 & Diskussion und Fazit     & Beantwortung der Forschungsfrage, Limitationen, Ausblick \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+% =============================================================================
+% KAPITEL 2: THEORETISCHE GRUNDLAGEN
+% =============================================================================
+\chapter{Theoretische Grundlagen}
+
+\section{Große Sprachmodelle als kognitive Agenten-Basis}
+
+Große Sprachmodelle (englisch: \textit{Large Language Models}, \ac{LLM}s) sind
+auf Basis der Transformer-Architektur (Vaswani et al., 2017) trainierte neuronale
+Netze, die auf Milliarden von Textparametern trainiert wurden. Ihr zentraler
+Mechanismus -- der \textit{Self-Attention}-Algorithmus -- ermöglicht die kontextuelle
+Modellierung beliebig langer Eingabesequenzen und bildet damit die technische
+Grundlage für komplexes Reasoning über mehrere Schritte hinweg \cite{openai2023gpt4}.
+
+Für den Einsatz als Agenten-Fundament sind drei Eigenschaften moderner \ac{LLM}s
+besonders relevant:
+
+\begin{enumerate}
+  \item \textbf{Instruction Following:} Modelle wie GPT-4o oder Claude 3.5 Sonnet
+    können strukturierte Anweisungen -- etwa Prompt-Templates mit festen Ausgabeformaten
+    -- zuverlässig befolgen. Dies ist Voraussetzung für das deterministische Parsing der
+    ReAct-Ausgaben.
+
+  \item \textbf{In-Context Learning:} \ac{LLM}s können aus wenigen Beispielen im
+    Prompt (Few-Shot) verallgemeinern, ohne erneut trainiert zu werden. Das ReAct-Muster
+    nutzt dies, indem vergangene Thought-Action-Observation-Tripel als Kontext mitgegeben
+    werden.
+
+  \item \textbf{Tool Use / Function Calling:} Neuere \ac{LLM}s unterstützen natives
+    Function Calling via \ac{API}, bei dem das Modell strukturierte JSON-Ausgaben für
+    Werkzeugaufrufe produziert. Die vorliegende Arbeit nutzt stattdessen ein
+    textbasiertes ReAct-Format, das modellunabhängig ist.
+\end{enumerate}
+
+Turing (1950) formulierte bereits die philosophische Grundfrage, ob Maschinen denken
+können \cite{turing1950computing}. Moderne \ac{LLM}s realisieren diese Fähigkeit in
+einer praktisch nutzbaren Form: Sie ermöglichen durch die Kombination von Reasoning
+und Werkzeugnutzung die Lösung komplexer, mehrstufiger Aufgaben.
+
+\section{Das ReAct-Muster}
+\label{sec:react}
+
+\subsection{Grundkonzept und Motivation}
+
+Das ReAct-Framework wurde von Yao et al.\ (2022) als Synthese zweier bis dahin
+getrennter Forschungsrichtungen entwickelt: dem Chain-of-Thought-Prompting (Wei et al.,
+2022) einerseits und der LLM-gesteuerten Aktionsausführung andererseits \cite{yao2022react}.
+
+\subsubsection{Chain-of-Thought als Vorgänger}
+
+Wei et al.\ (2022) zeigten, dass das explizite Formulieren von Zwischenschritten
+(\textit{Chain-of-Thought}, \ac{CoT}) die Leistungsfähigkeit von \ac{LLM}s bei
+komplexen Aufgaben erheblich verbessert \cite{wei2022chain}. Ein \ac{CoT}-Prompt
+enthält beispielsweise:
+
+\begin{lstlisting}[caption={Beispiel eines Chain-of-Thought-Prompts}, label=lst:cot]
+Frage: Marie hat 3 Mal so viele Aepfel wie Peter.
+       Peter hat 5 Aepfel. Wie viele hat Marie?
+Gedankengang: Peter hat 5 Aepfel. Marie hat 3 * 5 = 15 Aepfel.
+Antwort: 15
+\end{lstlisting}
+
+Der entscheidende Nachteil von \ac{CoT} liegt darin, dass das Modell ausschließlich
+auf sein internes, in den Gewichten gespeichertes Wissen zurückgreift. Bei
+wissensintensiven Aufgaben -- wie dem Abrufen aktueller Datenbank-Inhalte oder dem
+Zugriff auf unternehmensinterne Dokumente -- führt dies systematisch zu Halluzinationen
+oder veralteten Informationen.
+
+\subsubsection{Das ReAct-Trajekt-Format}
+
+ReAct löst dieses Problem, indem es Reasoning-Schritte (\textit{Thoughts}) mit
+konkreten Werkzeugaufrufen (\textit{Actions}) und externem Feedback (\textit{Observations})
+verknüpft. Yao et al.\ (2022) definieren die ReAct-Trajektorie als Sequenz von Tripeln
+$(t_i, a_i, o_i)$, wobei gilt:
+
+\begin{itemize}
+  \item $t_i$ -- Thought: explizite Reasoning-Spur des Modells vor der Entscheidung
+  \item $a_i$ -- Action: gewähltes Werkzeug und seine Eingabeparameter
+  \item $o_i$ -- Observation: Ergebnis der Werkzeugausführung aus der Umgebung
+\end{itemize}
+
+\begin{lstlisting}[caption={ReAct-Trajekt für das SC-01-Szenario (eigene Darstellung)},
+  label=lst:react-example]
+Thought: Ich muss zunaechst die ausstehenden Bestellungen aus der Datenbank
+         abrufen. Dazu verwende ich das sql_query-Tool.
+Action: sql_query
+Action Input: {"query": "SELECT * FROM orders WHERE status = 'pending'"}
+
+Observation: [{"order_id": 1001, "customer": "Acme GmbH", "total": 1200.50},
+              {"order_id": 1002, "customer": "Beta AG",   "total":  870.00}]
+
+Thought: Ich habe 2 Bestellungen abgerufen. Nun muss ich sie in das
+         ERP-Format transformieren und uebertragen.
+Action: erp_push
+Action Input: {"payload": [{"order_id": 1001, ...}, {"order_id": 1002, ...}]}
+
+Observation: {"status": "ok", "recordsImported": 2}
+
+Thought: Alle Bestellungen wurden erfolgreich importiert.
+Final Answer: Beide ausstehenden Bestellungen wurden erfolgreich ins ERP
+              uebertragen (Acme GmbH: 1.200,50 EUR; Beta AG: 870,00 EUR).
+\end{lstlisting}
+
+\subsection{Empirische Belege}
+
+Yao et al.\ (2022) evaluieren ReAct auf den Benchmarks HotpotQA (mehrstufige
+Frage-Antwort), Fever (Faktenverifikation) und ALFWorld (interaktive Textspiele).
+In allen drei Domänen übertrifft ReAct reine \ac{CoT}-Ansätze signifikant, weil
+externe Informationsquellen Halluzinationen verhindern \cite{yao2022react}. Diese
+empirischen Belege motivieren die Wahl des ReAct-Musters als Grundlage des Artefakts.
+
+\section{Agentic Memory und Zustandspersistenz}
+\label{sec:memory}
+
+\subsection{Das Memory-Stream-Modell}
+
+Park et al.\ (2023) präsentierten generative Agenten -- simulierte menschliche
+Charaktere in einer virtuellen Umgebung --, die glaubwürdiges, kohärentes Verhalten
+über lange Zeiträume hinweg zeigen \cite{park2023generative}. Das Kernkonzept ist der
+\textit{Memory Stream}: eine chronologisch geordnete, append-only-Liste aller erlebten
+Ereignisse.
+
+Der Memory Stream unterscheidet sich grundlegend von einem einfachen Freitext-Kontext:
+
+\begin{table}[H]
+  \centering
+  \caption{Vergleich: Freitext-Kontext vs. Memory Stream nach Park et al. (2023)}
+  \label{tab:memory-comparison}
+  \begin{tabularx}{\textwidth}{lXX}
+    \toprule
+    \textbf{Eigenschaft} & \textbf{Freitext-Kontext} & \textbf{Memory Stream} \\
+    \midrule
+    Struktur       & Unstrukturierter Text       & Typisierte Einträge (Thought, Action, Observation) \\
+    Auditierbarkeit & Schwer maschinell auswertbar & Direkt maschinenlesbar \\
+    Zeitstempel    & Optional / informell          & ISO-8601, verpflichtend \\
+    Filterung      & Nur manuell                   & Selektiver Abruf nach Relevanz \\
+    Fehlertoleranz & Gesamter Kontext verloren     & Persistenz über Fehler hinweg \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\subsection{Taxonomy agentischer Gedächtnistypen}
+
+Wang et al.\ (2023) liefern eine umfassende Taxonomy von Agenten-Architekturen und
+unterscheiden vier Gedächtnistypen: \textit{Sensory Memory} (kurzfristige Wahrnehmung),
+\textit{Short-Term Memory} (Arbeitsgedächtnis, begrenzt), \textit{Long-Term Memory}
+(extern persistiert) und \textit{Episodic Memory} (erlebte Ereignisse)
+\cite{wang2023survey}. Der \textit{AgentStateNode} dieser Arbeit implementiert den
+\textit{Episodic-Memory}-Typ: jede \ac{TAO}-Episode wird als timestampierter Eintrag
+im History-Array gespeichert.
+
+\section{Retrieval-Augmented Generation (RAG)}
+\label{sec:rag}
+
+\subsection{Architektur und Motivation}
+
+Lewis et al.\ (2020) führten \ac{RAG} ein, um die faktische Halluzination von \ac{LLM}s
+durch die Einbindung externer Dokumentenquellen zur Inferenzzeit zu reduzieren
+\cite{lewis2020retrieval}. Die Architektur gliedert sich in zwei Phasen:
+
+\paragraph{Indexierungsphase (offline):}
+Dokumente werden in Dense-Vektoren transformiert und in einem Vektorspeicher abgelegt.
+Als Embedding-Modell wird in dieser Arbeit \texttt{text-embedding-3-small} von OpenAI
+verwendet, das 1.536-dimensionale Vektoren produziert.
+
+\paragraph{Retrieval-Phase (online):}
+Eine Anfrage wird ebenfalls eingebettet; der Vektorspeicher gibt die $k$ ähnlichsten
+Dokumente nach dem Kosinus-Ähnlichkeitsmaß zurück (\textit{Top-k-Retrieval}).
+
+\begin{equation}
+  \text{sim}(\vec{q}, \vec{d}) = \frac{\vec{q} \cdot \vec{d}}{\|\vec{q}\| \cdot \|\vec{d}\|}
+  \label{eq:cosine}
+\end{equation}
+
+Die abgerufenen Dokumente $D = \{d_1, \ldots, d_k\}$ werden anschließend als
+zusätzlicher Kontext in den LLM-Prompt eingefügt, womit das Modell auf aktuelle,
+unternehmensinterne Informationen zugreifen kann, ohne neu trainiert werden zu müssen.
+
+\subsection{Bedeutung für das Artefakt}
+
+Der \textit{VectorStoreNode} realisiert sowohl die Indexierungs- als auch die
+Retrieval-Phase innerhalb einer einzigen n8n-Node. ChromaDB dient als persistenter
+Vektorspeicher; die native SDK-Integration vermeidet den HTTP-Overhead, der bei der
+Baseline-Implementierung durch drei separate n8n-Nodes entsteht (Embedding-Request,
+Transformationsschritt, ChromaDB-Request).
+
+\section{n8n im Vergleich zu anderen Low-Code-Plattformen}
+\label{sec:lowcode-comparison}
+
+\subsection{Überblick des Low-Code-Marktes}
+
+Waszkowski (2019) definiert Low-Code-Plattformen als Systeme, die
+Software\-entwicklung durch visuelle Abstraktionen für ein breites Nutzerfeld
+zugänglich machen, ohne die Flexibilität für komplexe Anwendungsfälle einzuschränken
+\cite{waszkowski2019lowcode}. Luo et al.\ (2021) ergänzen, dass Low-Code-Plattformen
+insbesondere dann Mehrwert schaffen, wenn sie die Lücke zwischen
+Business-Prozess-Experten und Softwareentwicklern schließen
+\cite{luo2021characteristics}.
+
+Im Kontext dieser Arbeit ist entscheidend, welche Plattformen den Custom-Node-Mechanismus
+bereitstellen, der für die Implementierung des Artefakts erforderlich ist.
+Tabelle~\ref{tab:lowcode-vergleich} vergleicht die relevantesten Plattformen.
+
+\begin{table}[H]
+  \centering
+  \caption{Vergleich von Low-Code-/Workflow-Plattformen}
+  \label{tab:lowcode-vergleich}
+  \begin{tabularx}{\textwidth}{lXXcc}
+    \toprule
+    \textbf{Plattform} & \textbf{Erweiter\-barkeit} & \textbf{KI-Agent\-Support} &
+    \textbf{Open Source} & \textbf{Self-hosted} \\
+    \midrule
+    \textbf{n8n}              & Custom Nodes (TypeScript/JS), vollständig & Nativ + erweiterbar & Ja & Ja \\
+    Zapier                    & Keine eigenen Nodes; nur konfigurierbar   & Begrenzt (kein State) & Nein & Nein \\
+    Make (Integromat)         & Module via Partner-\ac{API}; kein Code    & Kein nativer Support  & Nein & Nein \\
+    Microsoft Power Automate  & Connectors (Low-Overhead, Enterprise)     & Copilot-Integration   & Nein & Nein \\
+    Apache Airflow            & Python-Operators, vollständig             & Kein visueller Editor & Ja & Ja \\
+    Node-RED                  & JS-Nodes (IoT-fokussiert)                 & Kein nativer Support  & Ja & Ja \\
+    Temporal                  & Go/Java/TS-Workflows (Dev-fokussiert)     & Kein visueller Editor & Ja & Ja \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\subsection{Detaillierter Plattformvergleich}
+
+\subsubsection{Zapier}
+
+Zapier ist die marktführende No-Code-Automatisierungsplattform mit über 6.000
+App-Integrationen. Ihre Stärke liegt in der einfachen Verknüpfung von SaaS-Diensten
+(Trigger $\to$ Action), nicht jedoch in der Implementierung benutzerdefinierter Logik.
+Zapier erlaubt keine eigenen Node-Typen; Nutzer sind auf den vorgegebenen Integrations-Katalog
+beschränkt. Komplexe Zustandsverwaltung ist nicht möglich \cite{luo2021characteristics}.
+Für das Artefakt dieser Arbeit scheidet Zapier aus, weil die Implementierung des
+ReAct-Loops benutzerdefinierte Kontrollfluss-Logik und State-Management erfordert,
+die über Zapier nicht realisierbar sind.
+
+\subsubsection{Make (ehem. Integromat)}
+
+Make bietet einen visuellen Szenario-Editor mit Unterstützung für komplexe
+Verzweigungen und Iteratoren. Eigene Module können jedoch nur über die Partner-\ac{API}
+hinzugefügt werden, was erheblichen bürokratischen Aufwand bedeutet. Codebasierte
+Erweiterungen sind nicht vorgesehen. Darüber hinaus ist Make ein vollständig cloudbasierter,
+proprietärer Dienst ohne Self-Hosted-Option -- was für Unternehmensanwendungen mit
+Datenschutz-Anforderungen problematisch sein kann \cite{luo2021characteristics}.
+
+\subsubsection{Microsoft Power Automate}
+
+Power Automate ist tief in das Microsoft-365-Ökosystem integriert und bietet
+umfangreiche Konnektoren für Enterprise-Systeme. Die Erweiterbarkeit über Custom
+Connectors ist möglich, aber auf die Microsoft-Plattform beschränkt. Eine
+vollständige Self-Hosted-Deployment-Option existiert nicht. Für Unternehmen außerhalb
+des Microsoft-Ökosystems entstehen erhebliche Abhängigkeiten \cite{luo2021characteristics}.
+
+\subsubsection{Apache Airflow}
+
+Apache Airflow ist eine auf Python basierende Workflow-Orchestrierungsplattform, die
+in der Datentechnik (Data Engineering) weit verbreitet ist. Airflow ist hochgradig
+erweiterbar (Custom Operators in Python), besitzt jedoch keinen visuellen
+Drag-and-Drop-Editor für die Workflow-Definition. Die Zielgruppe sind Entwickler und
+Data Engineers, nicht Business-Prozess-Experten. Damit erfüllt Airflow zwar die
+technischen Anforderungen (State via XCom, Python-Flexibilität), nicht aber das
+Transparenzversprechen eines visuellen Canvas, das Nicht-Entwicklern zugänglich ist.
+
+\subsubsection{Node-RED}
+
+Node-RED ist eine quelloffene, flow-basierte Entwicklungsplattform, die ursprünglich
+für IoT-Anwendungen (IBM, 2013) konzipiert wurde. Die Erweiterbarkeit über JavaScript-Nodes
+ist vorhanden; die Plattform ist jedoch nicht auf Enterprise-Prozessautomatisierung
+ausgerichtet und bietet keinen nativen \ac{LLM}-Integration-Support. Das Ökosystem ist
+deutlich kleiner als das von n8n.
+
+\subsubsection{Temporal}
+
+Temporal ist eine Workflow-Orchestrierungsplattform für langlebige, zustandsbehaftete
+Prozesse in Go, Java oder TypeScript. Technisch wäre Temporal für die Umsetzung der
+Agenten-Architektur geeignet (natives State-Management, Retry-Logic). Jedoch ist
+Temporal ausschließlich entwicklerorientiert: Es gibt keinen visuellen Editor, und die
+Lernkurve ist erheblich. Das Transparenz- und Zugänglichkeitsziel dieser Arbeit
+wäre damit verfehlt.
+
+\subsubsection{Warum n8n?}
+
+n8n vereint als einzige der betrachteten Plattformen alle vier für das Artefakt
+erforderlichen Eigenschaften:
+
+\begin{enumerate}
+  \item \textbf{Vollständige Erweiterbarkeit:} Custom Nodes in TypeScript/JavaScript
+    ohne bürokratische Hürden, direkt per npm-Paket einbindbar.
+  \item \textbf{Visueller Canvas:} Jeder Node ist ein sichtbares Element im Workflow --
+    dies ist das primäre Medium für die Transparenz-Anforderung.
+  \item \textbf{Self-Hosted und Open Source:} Keine Cloud-Abhängigkeit; DSGVO-konformer
+    Betrieb möglich.
+  \item \textbf{Natives KI-Ökosystem:} n8n bietet bereits LangChain-basierte
+    KI-Nodes (\textit{AI Agent Node}), auf die das Artefakt aufbauen und die es
+    übertreffen kann.
+\end{enumerate}
+
+Die Entscheidung für n8n war letztlich pragmatisch: Wer einen KI-Agenten entwickeln
+will, der auch für Mitarbeitende ohne Programmierkenntnisse bedienbar und
+nachvollziehbar ist, kommt an einem visuellen Workflow-Tool kaum vorbei. LangChain
+ist für Entwickler gemacht -- das ist auch sein Vorteil. Aber das Ziel dieser Arbeit
+war ein anderes: einen Agenten zu zeigen, dessen Entscheidungsschritte sich im Browser
+verfolgen und bei Bedarf unterbrechen lassen. Das erfordert einen visuellen Canvas, und
+n8n war die einzige Plattform, die das zusammen mit echter Custom-Node-Erweiterbarkeit
+in TypeScript bot.
+
+\section{Vergleich mit bestehenden KI-Agenten-Frameworks}
+\label{sec:agent-comparison}
+
+\subsection{Überblick}
+
+Seit der Veröffentlichung von GPT-4 (OpenAI, 2023) ist eine Vielzahl von
+Agenten-Frameworks entstanden, die \ac{LLM}s mit Werkzeugen verbinden. Wang et al.\
+(2023) geben einen umfassenden Überblick über diese Landschaft \cite{wang2023survey}.
+Für die vorliegende Arbeit sind insbesondere jene Frameworks relevant, die als
+Alternativlösungen für die adressierte Problemstellung in Frage kämen.
+
+\begin{table}[H]
+  \centering
+  \caption{Vergleich KI-Agenten-Frameworks mit dem Artefakt}
+  \label{tab:agent-vergleich}
+  \begin{tabularx}{\textwidth}{lXcccc}
+    \toprule
+    \textbf{Framework} & \textbf{Paradigma} & \textbf{Visuell} & \textbf{Transparent} &
+    \textbf{HITL} & \textbf{No-Code} \\
+    \midrule
+    \textbf{Artefakt (n8n)} & ReAct, 1 Step/Node & \checkmark & \checkmark & \checkmark & \checkmark \\
+    n8n AI Agent Node       & LangChain-intern   & \checkmark & \texttimes & Begrenzt & \checkmark \\
+    LangChain (Python)      & Chain/Agent        & \texttimes & \texttimes & Manuell  & \texttimes \\
+    AutoGPT                 & Autonome Schleife  & \texttimes & \texttimes & \texttimes & \texttimes \\
+    Claude Code             & Coding-Agent       & \texttimes & \texttimes & Teilweise & \texttimes \\
+    CrewAI                  & Multi-Agent        & \texttimes & Teilweise  & \texttimes & \texttimes \\
+    AutoGen (Microsoft)     & Multi-Agent, Chat  & \texttimes & Teilweise  & Teilweise & \texttimes \\
+    LlamaIndex              & RAG-fokussiert     & \texttimes & \texttimes & \texttimes & \texttimes \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\subsection{n8n AI Agent Node (Baseline)}
+
+Der native \textit{AI Agent Node} von n8n basiert intern auf dem LangChain-Framework
+und bietet eine visuelle Konfiguration. Er hat jedoch drei strukturelle Einschränkungen,
+die das Artefakt behebt:
+
+\begin{itemize}
+  \item \textbf{Keine persistente Zustandsverwaltung:} Der AI Agent Node führt die
+    gesamte ReAct-Schleife intern aus. Der Zwischenzustand ist nicht im Canvas sichtbar
+    und kann nicht zwischen Node-Ausführungen persistiert werden.
+  \item \textbf{Eingeschränkte Transparenz:} Die Thought-Action-Observation-Tripel
+    sind zwar in den Execution-Logs abrufbar, aber nicht als diskrete, interagierbare
+    Workflow-Elemente visualisiert.
+  \item \textbf{Kein granulares Human-in-the-Loop:} Der Node pausiert nicht nach jeder
+    Action; menschliche Eingriffe sind nur am Anfang oder Ende des Prozesses möglich.
+\end{itemize}
+
+\subsection{LangChain}
+
+LangChain ist das meistgenutzte Python-Framework für \ac{LLM}-Anwendungen. Es bietet
+umfangreiche Abstraktionen für Chains, Agenten, Retriever und Tools. Für die
+Implementierung eines zustandsbehafteten ReAct-Agenten ist LangChain technisch
+geeignet. Die Einschränkungen im Kontext dieser Arbeit:
+
+\begin{itemize}
+  \item \textbf{Kein visueller Canvas:} Die gesamte Logik ist in Python-Code
+    definiert. Business-Prozess-Experten ohne Python-Kenntnisse können den Agenten
+    weder konfigurieren noch seinen Ablauf nachvollziehen.
+  \item \textbf{Erschwertes Human-in-the-Loop:} LangChain bietet Callbacks und
+    \textit{LangGraph} für HITL-Szenarien, jedoch ohne visuelle Repräsentation.
+  \item \textbf{Schlechte Integration in bestehende IT-Infrastruktur:} Die Integration
+    in ERP-Systeme, SQL-Datenbanken und REST-\ac{API}s erfordert manuelle Python-Entwicklung.
+    n8n's umfangreiche Node-Bibliothek (400+ Integrationen) steht nicht zur Verfügung.
+\end{itemize}
+
+\subsection{AutoGPT}
+
+AutoGPT war eines der ersten öffentlich verfügbaren autonomen Agenten-Systeme. Es
+iteriert selbstständig über ReAct-ähnliche Zyklen bis zur Aufgabenerfüllung und benötigt
+dabei keine menschlichen Eingriffe. Genau darin liegt das zentrale Problem für
+produktive Unternehmensanwendungen: AutoGPT kann unkontrolliert irreversible Aktionen
+ausführen -- etwa Dateien löschen, E-Mails versenden oder Web-\ac{API}s aufrufen --,
+ohne dass ein Operator eingreifen kann. Transparenz ist nicht vorgesehen; der
+Entscheidungsprozess ist vollständig in einer Black Box verborgen.
+
+\subsection{Claude Code}
+
+Claude Code (Anthropic, 2024) ist ein KI-gestützter Coding-Assistent, der als
+Command-Line-Interface direkt im Terminal läuft und Entwicklern beim Schreiben,
+Refactoring und Debuggen von Code hilft. Für den Kontext der vorliegenden Arbeit
+ist Claude Code aus zwei Gründen relevant, aber nicht als Lösung geeignet:
+
+\begin{itemize}
+  \item \textbf{Domänenspezifisch:} Claude Code ist auf Software-Entwicklungsaufgaben
+    spezialisiert (Datei-Operationen, Git, Terminal). Die in dieser Arbeit adressierten
+    Geschäftsprozess-Szenarien (ERP, SQL, RAG) sind nicht der Anwendungsfall.
+  \item \textbf{Keine Prozessintegration:} Claude Code besitzt keinen visuellen
+    Workflow-Editor und keine nativen Konnektoren zu Unternehmensanwendungen. Jede
+    Integration müsste manuell programmiert werden.
+  \item \textbf{Black-Box-Entscheidungen:} Ähnlich wie AutoGPT sind die internen
+    Reasoning-Schritte nicht für externe Auditoren sichtbar.
+\end{itemize}
+
+Claude Code richtet sich in erster Linie an Entwickler, die ihre Werkzeuge über
+Code steuern wollen und mit der zugrunde liegenden Technologie vertraut sind.
+Das in dieser Arbeit entwickelte Artefakt verfolgt einen anderen Ansatz: Es soll
+auch für Personen ohne Programmierkenntnisse nutzbar sein und den Ablauf des
+Agenten zu jedem Zeitpunkt transparent und nachvollziehbar halten.
+
+\subsection{CrewAI und AutoGen}
+
+CrewAI und AutoGen (Microsoft) realisieren Multi-Agenten-Architekturen, in denen
+mehrere spezialisierte Agenten miteinander kommunizieren \cite{wang2023survey}. Beide
+Frameworks sind technisch anspruchsvoll und Python-basiert. Für die vorliegende Arbeit
+-- die einen einzelnen ReAct-Agenten in einer Enterprise-Low-Code-Umgebung verankert
+-- sind Multi-Agenten-Frameworks überengineered und erhöhen die Komplexität ohne
+direkten Mehrwert.
+
+\subsection{LlamaIndex}
+
+LlamaIndex (früher GPT Index) ist ein \ac{RAG}-fokussiertes Python-Framework, das
+umfangreiche Dokumenten-Indexierungspipelines und Retrieval-Strategien bietet.
+Technisch ist LlamaIndex für den VectorStore-Anwendungsfall gut geeignet. Es fehlt
+jedoch der visuelle Workflow-Editor und die Möglichkeit, den Retrieval-Prozess ohne
+Programmierkenntnisse zu konfigurieren.
+
+\section{Design Science Research als Forschungsmethodik}
+\label{sec:dsr}
+
+Hevner et al.\ (2004) definieren \ac{DSR} als wissenschaftliche Methode, bei der
+IT-Artefakte -- Konstrukte, Modelle, Methoden oder Instanziierungen -- als
+Primärergebnis der Forschung entwickelt und evaluiert werden \cite{hevner2004design}.
+Die Methodik kombiniert die rigorose Evaluation aus der Naturwissenschaft mit dem
+konstruktiven Ansatz aus der Ingenieurwissenschaft.
+
+Für die vorliegende Arbeit bedeutet dies:
+
+\begin{itemize}
+  \item \textbf{Artefakt:} Das n8n-Agentic-Pack (3 Custom Nodes, Evaluation-Framework,
+    Dokumentation).
+  \item \textbf{Problemraum:} Fehlende Transparenz und Zustandslosigkeit von LLM-Agenten
+    in Low-Code-Plattformen.
+  \item \textbf{Wissensraum:} Einschlägige Publikationen zu ReAct, RAG, Memory, DSR.
+  \item \textbf{Evaluation:} Drei Benchmark-Szenarien mit quantitativen und qualitativen
+    Metriken, verglichen mit Baseline und Referenz.
+\end{itemize}
+
+% =============================================================================
+% KAPITEL 3: AGENTSTATETNODE
+% =============================================================================
+\chapter{Implementierung: AgentStateNode}
+
+\section{Theoretische Grundlage}
+
+Der \textit{AgentStateNode} implementiert das persistente Zustandsmodell für den
+gesamten Agenten-Lebenszyklus. Theoretische Basis ist der Memory-Stream-Ansatz aus
+Park et al.\ (2023), ergänzt durch die Sicherheitsmechanismen aus Wang et al.\ (2023)
+\cite{park2023generative, wang2023survey}.
+
+Die zentrale Designentscheidung besteht darin, den Agentenzustand nicht als internes
+Objekt innerhalb eines Agenten-Frameworks (wie LangChain's \texttt{AgentExecutor}) zu
+verwalten, sondern ihn als explizites \ac{JSON}-Objekt im n8n-Datenstrom zu
+materialisieren. Dieser Ansatz ermöglicht:
+
+\begin{itemize}
+  \item Sichtbarkeit des Zustands nach jeder Node-Ausführung im n8n-Canvas
+  \item Persistenz des Zustands in externen Speichern (Redis, PostgreSQL) ohne
+    Änderung der Node-Implementierung
+  \item Reproduzierbarkeit: Ein gespeicherter Zustand kann jederzeit geladen und
+    fortgesetzt werden
+\end{itemize}
+
+\section{Designentscheidungen und Alternativen}
+
+\subsection{Entscheidung 1: Strukturierter History-Log vs. Freitext-Kontext}
+
+\paragraph{Gewählter Ansatz:}
+Der Agentenzustand speichert die vergangenen Schritte als typisiertes Array von
+\texttt{AgentStep}-Objekten (je Thought, Action, ActionInput, Observation, Timestamp).
+
+\paragraph{Alternative A -- Freitext-Kontext:}
+Der gesamte Gesprächsverlauf wird als einfacher String gespeichert (ähnlich wie
+LangChain's \texttt{ConversationBufferMemory}). Vorteil: geringerer Implementierungsaufwand.
+Nachteil: kein maschineller Zugriff auf einzelne Felder; Benchmarking-Auswertung
+(Metrik: \texttt{steps\_to\_completion}) erfordert aufwändiges Text-Parsing.
+
+\paragraph{Alternative B -- Ring Buffer (FIFO):}
+Nur die letzten $n$ Schritte werden gespeichert (ähnlich
+\texttt{ConversationBufferWindowMemory} in LangChain). Vorteil: begrenzter
+Speicherbedarf, auch bei langen Agenten-Läufen. Nachteil: Schritte gehen verloren;
+der Agent kann frühere Beobachtungen nicht mehr referenzieren. Dies ist insbesondere
+für den SC-03-Benchmark (Error Recovery) kritisch, wo der Agent auf den fehlgeschlagenen
+ersten Schritt zurückblicken muss.
+
+\paragraph{Begründung der Wahl:}
+Der vollständige, strukturierte History-Log wurde gewählt, weil (1) die wissenschaftliche
+Auswertung Zugriff auf alle Schritte benötigt und (2) Park et al.\ (2023) explizit
+zeigen, dass der vollständige Memory Stream -- nicht ein abgeschnittener Kontext --
+zu kohärentem Langzeitverhalten führt \cite{park2023generative}.
+
+\subsection{Entscheidung 2: Serialisierung als JSON im n8n-Datenstrom}
+
+\paragraph{Gewählter Ansatz:}
+Der Zustand wird als \ac{JSON}-Objekt zwischen Nodes weitergereicht, was dem nativen
+Datenmodell von n8n entspricht.
+
+\paragraph{Alternative A -- Redis / externer KV-Speicher:}
+Der Zustand wird unter einer \texttt{sessionId} in Redis gespeichert; Nodes lesen
+und schreiben ihn über eine \ac{API}. Vorteil: Zustand ist von der Workflow-Instanz
+entkoppelt. Nachteil: zusätzliche Infrastrukturabhängigkeit; nicht ohne Weiteres
+in Docker-Compose-Testumgebungen integrierbar.
+
+\paragraph{Alternative B -- n8n Static Data:}
+n8n bietet einen \texttt{staticData}-Mechanismus für persistente Node-Zustände.
+Nachteil: nicht für Multi-Instance-Deployments geeignet; nicht skalierbar.
+
+\paragraph{Begründung der Wahl:}
+Die JSON-Serialisierung im Datenstrom wurde gewählt, weil sie ohne zusätzliche
+Infrastruktur auskommt und das Artefakt so in jeder n8n-Umgebung ohne Vorkonfiguration
+lauffähig ist. Für produktive Deployments kann der Zustand trivial in einen externen
+Speicher ausgelagert werden, ohne die Node-Implementierung zu ändern.
+
+\subsection{Entscheidung 3: Harte Iterationsgrenze (maxSteps)}
+
+\paragraph{Gewählter Ansatz:}
+Der Parameter \texttt{maxSteps} wirkt als harte Grenze; das Überschreiten löst einen
+\texttt{NodeOperationError} aus.
+
+\paragraph{Alternative -- Weiche Warnung:}
+Eine Warnung wird in das Observations-Feld geschrieben; der Agent kann entscheiden,
+ob er trotzdem fortfährt. Nachteil: ein fehlerhafter Agent ignoriert möglicherweise
+die Warnung und erzeugt unkontrollierte \ac{API}-Kosten.
+
+\paragraph{Begründung:}
+Wang et al.\ (2023) identifizieren Endlosschleifen als kritischen Ausfallmodus in
+Produktivsystemen \cite{wang2023survey}. Eine harte Grenze ist die robustere Wahl.
+
+\section{Zustandsschema}
+
+\begin{lstlisting}[language=Java, caption={AgentState-Schnittstelle in TypeScript},
+  label=lst:agentstate-schema]
+interface AgentState {
+  sessionId: string;          // UUID-v4: eindeutiger Session-Schluessel
+  context: string;            // Aufgabenbeschreibung im natuerlichen Sprachformat
+  history: AgentStep[];       // Memory Stream (append-only, vollstaendig)
+  stepCount: number;          // Anzahl abgeschlossener Schritte
+  maxSteps: number;           // Harte Iterationsgrenze
+  metadata: Record<string, unknown>; // Erweiterungsdaten
+}
+
+interface AgentStep {
+  step: number;       // 1-basierter Sequenzindex
+  thought: string;    // Reasoning-Spur des LLM
+  action: string;     // Ausgewaehltes Tool
+  actionInput: Record<string, unknown>; // JSON-Parameter fuer das Tool
+  observation: string;// Tool-Ergebnis
+  timestamp: string;  // ISO 8601
+}
+\end{lstlisting}
+
+\section{Implementierte Operationen}
+
+Der \textit{AgentStateNode} stellt vier Operationen bereit, die den gesamten
+Lebenszyklus eines Agenten-Runs abdecken:
+
+\begin{description}[leftmargin=3cm]
+  \item[\texttt{initialize}] Erstellt einen neuen Agentenzustand mit einer
+    frischen UUID-v4-Session-ID, einem leeren History-Array und dem angegebenen
+    Kontext. Entspricht dem \textit{Bootstrapping}-Schritt eines generativen Agenten
+    (Park et al., 2023).
+
+  \item[\texttt{update}] Hängt einen abgeschlossenen \texttt{AgentStep} an den
+    History-Array und inkrementiert \texttt{stepCount}. Vor der Ausführung wird
+    geprüft, ob \texttt{maxSteps} erreicht ist.
+
+  \item[\texttt{get}] Gibt den aktuellen Zustand nach Validierung aller Pflichtfelder
+    zurück. Dient zur Inspektion des Zustands an beliebiger Stelle im Workflow.
+
+  \item[\texttt{reset}] Löscht \texttt{history} und \texttt{stepCount}, behält jedoch
+    \texttt{sessionId}, \texttt{context}, \texttt{maxSteps} und \texttt{metadata}.
+    Ermöglicht einen Neustart ohne neue Session-Erstellung (relevant für SC-03).
+\end{description}
+
+\section{Reine Funktionen und Testbarkeit}
+
+Alle sechs reinen Geschäftslogik-Funktionen (\texttt{initializeState},
+\texttt{appendStep}, \texttt{isMaxStepsReached}, \texttt{resetState},
+\texttt{serializeState}, \texttt{deserializeState}) sind unabhängig von der n8n-Node-Klasse
+implementiert und vollständig unit-testbar. Diese Trennung folgt dem
+\textit{Separation-of-Concerns}-Prinzip und erlaubt es, die Kernlogik zu testen,
+ohne n8n-Infrastruktur starten zu müssen.
+
+\section{Testergebnisse}
+
+Die Testsuite \texttt{nodes/AgentStateNode/\_\_tests\_\_/AgentStateNode.test.ts}
+umfasst 40 Testfälle in sieben Testsuiten. Die Jest-Coverage-Auswertung ergibt:
+
+\begin{table}[H]
+  \centering
+  \caption{Testabdeckung AgentStateNode}
+  \label{tab:coverage-agentstate}
+  \begin{tabular}{lrrrr}
+    \toprule
+    \textbf{Metrik} & \textbf{Statements} & \textbf{Branches} & \textbf{Functions} & \textbf{Lines} \\
+    \midrule
+    Ergebnis & 100\,\% & 83,87\,\% & 100\,\% & 100\,\% \\
+    Zielgröße & $\geq 80\,\%$ & $\geq 75\,\%$ & $\geq 80\,\%$ & $\geq 80\,\%$ \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\section{Bezug zur Forschungsfrage}
+
+Der \textit{AgentStateNode} beantwortet \textbf{TF1} (Machbarkeit), indem er zeigt,
+dass persistente Zustandsverwaltung innerhalb des n8n-Custom-Node-Mechanismus vollständig
+realisierbar ist. Er adressiert \textbf{TF2} (Transparenz), weil der gesamte
+Entscheidungsverlauf nach jeder Ausführung als strukturiertes JSON-Objekt im Canvas
+sichtbar ist -- ein qualitativer Vorteil, den die Baseline-Implementierung nicht bietet.
+
+% =============================================================================
+% KAPITEL 4: VECTORSTORENODE
+% =============================================================================
+\chapter{Implementierung: VectorStoreNode}
+
+\section{Theoretische Grundlage}
+
+Der \textit{VectorStoreNode} realisiert die Retriever-Komponente des \ac{RAG}-Frameworks
+(Lewis et al., 2020) als nativen n8n-Node \cite{lewis2020retrieval}. Die zentrale
+Motivation ist die Eliminierung des in der Baseline-Implementierung erforderlichen
+HTTP-Workarounds, der drei separate n8n-Nodes (Embedding-Request, Transformations-Node,
+ChromaDB-Request) benötigt.
+
+ChromaDB wurde als Vektorspeicher gewählt, weil es:
+\begin{enumerate}
+  \item vollständig quelloffen und selbst-hostbar ist (DSGVO-Kompatibilität)
+  \item eine native TypeScript/JavaScript-Client-Bibliothek (\texttt{chromadb} npm)
+    bereitstellt
+  \item persistenten, containerisierten Betrieb via Docker unterstützt
+  \item alle gängigen Ähnlichkeitsmaße unterstützt (Kosinus, L2, Inneres Produkt)
+\end{enumerate}
+
+\section{Designentscheidungen und Alternativen}
+
+\subsection{Entscheidung 1: ChromaDB vs. andere Vektorspeicher}
+
+\begin{table}[H]
+  \centering
+  \caption{Vergleich von Vektorspeicher-Optionen}
+  \label{tab:vectordb-vergleich}
+  \begin{tabularx}{\textwidth}{lXccc}
+    \toprule
+    \textbf{Speicher} & \textbf{Stärken} & \textbf{Self-hosted} & \textbf{TS-SDK} & \textbf{Open Source} \\
+    \midrule
+    \textbf{ChromaDB}  & Einfach, Docker-ready, akademisch weit verbreitet & Ja & Ja & Ja \\
+    Pinecone           & Hochskalierbar, managed                           & Nein & Ja & Nein \\
+    Weaviate           & GraphQL, umfangreich                              & Ja & Ja & Ja \\
+    pgvector           & PostgreSQL-Extension, keine neue Infrastruktur     & Ja & Ja & Ja \\
+    Qdrant             & Performant, Rust-basiert                          & Ja & Ja & Ja \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\paragraph{Pinecone} ist ein managed Vektordatenbankdienst ohne Self-Hosted-Option.
+Für eine Bachelorarbeit, die eine reproduzierbare Docker-Compose-Testumgebung
+bereitstellen soll, scheidet Pinecone aus.
+
+\paragraph{pgvector} ist eine PostgreSQL-Extension und hätte den Vorteil, keine
+neue Datenbankinfrastruktur zu erfordern. Nachteil: eine PostgreSQL-Instanz muss
+bereits existieren; der Konfigurationsaufwand ist höher als bei ChromaDB.
+
+\paragraph{ChromaDB} wurde gewählt, weil es den geringsten Setup-Aufwand bietet
+(ein Docker-Container), über eine vollständige TypeScript-Bibliothek verfügt und
+in der akademischen Community für \ac{RAG}-Prototypen weit verbreitet ist.
+
+\subsection{Entscheidung 2: Native SDK vs. HTTP-Request}
+
+\paragraph{Gewählter Ansatz:}
+Direkte Nutzung der \texttt{chromadb}-npm-Bibliothek innerhalb des Custom Node.
+
+\paragraph{Alternative -- HTTP-Request-Node (Baseline):}
+Die Standard-n8n-Implementierung nutzt den generischen HTTP-Request-Node für alle
+ChromaDB-Aufrufe. Dies erfordert für eine Upsert-Operation:
+\begin{enumerate}
+  \item HTTP POST \texttt{/v1/embeddings} (OpenAI-\ac{API}) $\to$ Embedding-Vektor
+  \item Set-Node: Manuelles Mapping des Vektors in das ChromaDB-Format
+  \item HTTP POST \texttt{/collections/\{name\}/upsert} (ChromaDB-\ac{API})
+\end{enumerate}
+
+\paragraph{Gemessene Vorteile der SDK-Integration:}
+\begin{itemize}
+  \item \textbf{Node-Reduktion:} 3 Nodes $\to$ 1 Node pro Operation
+  \item \textbf{Fehlervermeidung:} Manuelle JSON-Transformation in Schritt 2 ist
+    fehleranfällig (falsche Feldnamen, fehlende Felder)
+  \item \textbf{Latenz:} Kein HTTP-Parse-Overhead zwischen den drei Aufrufen; die
+    SDK-Aufrufe laufen im selben Node-Prozess
+  \item \textbf{Typsicherheit:} TypeScript-Typen der SDK verhindern Laufzeitfehler
+\end{itemize}
+
+\subsection{Entscheidung 3: Upsert-Semantik}
+
+Dokumente werden per \texttt{upsert} (create-or-update) statt per \texttt{insert}
+gespeichert. Dies entspricht der Empfehlung von Lewis et al.\ (2020) für produktive
+\ac{RAG}-Systeme, bei denen Dokumente regelmäßig aktualisiert werden \cite{lewis2020retrieval}.
+Ein reines Insert würde bei wiederholten Indexierungsläufen Duplikate erzeugen.
+
+\subsection{Entscheidung 4: Austauschbares Embedding-Modell}
+
+Das Embedding-Modell ist als Dropdown-Parameter konfigurierbar. Drei OpenAI-Modelle
+werden nativ unterstützt (\texttt{text-embedding-3-small}, \texttt{text-embedding-3-large}, \\
+\texttt{text-embedding-ada-002}). Die \texttt{embedText}-Funktion ist bewusst
+isoliert, um zukünftige lokale Modelle (z.\,B. Ollama/nomic-embed) ohne Änderung der
+Speicherlogik einzubinden.
+
+\section{Implementierte Operationen}
+
+\begin{description}[leftmargin=3cm]
+  \item[\texttt{upsert}] Generiert das Embedding für den übergebenen Text und
+    speichert Vektor, Rohtext und Metadaten in der angegebenen ChromaDB-Kollektion.
+
+  \item[\texttt{query}] Generiert das Embedding für die Suchanfrage und gibt die
+    $k$ ähnlichsten Dokumente mit \texttt{id}, \texttt{document}, \texttt{metadata}
+    und \texttt{distance} zurück.
+
+  \item[\texttt{delete}] Entfernt ein Dokument anhand seiner ID aus der Kollektion.
+
+  \item[\texttt{listCollections}] Listet alle vorhandenen Kollektionen; Hilfsfunktion
+    für Debugging und Workflow-Entwicklung.
+\end{description}
+
+\section{Testergebnisse}
+
+\begin{table}[H]
+  \centering
+  \caption{Testabdeckung VectorStoreNode}
+  \label{tab:coverage-vector}
+  \begin{tabular}{lrrrr}
+    \toprule
+    \textbf{Metrik} & \textbf{Statements} & \textbf{Branches} & \textbf{Functions} & \textbf{Lines} \\
+    \midrule
+    Ergebnis & 100\,\% & 77,77\,\% & 100\,\% & 100\,\% \\
+    Zielgröße & $\geq 80\,\%$ & $\geq 75\,\%$ & $\geq 80\,\%$ & $\geq 80\,\%$ \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+Alle 29 Testfälle verwenden Jest-Mocks für OpenAI-SDK und ChromaDB-Client, um
+offline-fähige, deterministische Tests zu gewährleisten.
+
+\section{Bezug zur Forschungsfrage}
+
+Der \textit{VectorStoreNode} adressiert \textbf{TF3} (Integration) direkt: Die
+native SDK-Integration reduziert die Node-Anzahl für eine Upsert-/Query-Operation
+von drei auf eins. Die Benchmark-Szenarien SC-01 und SC-02 messen diese Reduktion
+quantitativ über die Metrik \texttt{node\_count}.
+
+% =============================================================================
+% KAPITEL 5: REACTLOOPNODE
+% =============================================================================
+\chapter{Implementierung: ReActLoopNode}
+
+\section{Theoretische Grundlage}
+
+Der \textit{ReActLoopNode} ist die orchestrierende Kernkomponente des Artefakts.
+Er implementiert den \ac{TAO}-Zyklus des ReAct-Musters (Yao et al., 2022) als
+diskreten, schrittweisen n8n-Node \cite{yao2022react}. Die Werkzeugbeschreibungen
+im Prompt folgen dem Toolformer-Paradigma (Schick et al., 2023), bei dem Tools durch
+Namen und natürlichsprachliche Beschreibungen für das \ac{LLM} zugänglich gemacht
+werden, ohne explizites Fine-Tuning zu erfordern \cite{schick2023toolformer}.
+
+\section{Designentscheidungen und Alternativen}
+
+\subsection{Entscheidung 1: Ein Schritt pro Node-Ausführung (Single-Step-Design)}
+
+\paragraph{Gewählter Ansatz:}
+Der \textit{ReActLoopNode} führt \emph{genau einen} ReAct-Schritt pro Node-Ausführung
+durch: Er baut den Prompt auf, ruft das \ac{LLM} auf, parst die Ausgabe und gibt das
+Ergebnis an den n8n-Workflow zurück. Die eigentliche Schleife entsteht durch einen
+Feedback-Pfeil im n8n-Canvas zurück zum Node.
+
+\paragraph{Alternative -- Internal-Loop-Design:}
+Der Node führt alle Schritte bis zur Final Answer intern in einer \texttt{while}-Schleife
+aus. Vorteile: einfachere Workflow-Struktur; weniger Canvas-Objekte. Nachteile:
+\begin{itemize}
+  \item Der gesamte Entscheidungsprozess läuft unsichtbar in der Black Box des Nodes.
+  \item Kein Human-in-the-Loop zwischen Schritten möglich.
+  \item n8n's native Execution-Monitoring kann keine Zwischen\-stände anzeigen.
+  \item Entspricht dem Muster des Baseline-Nodes (AI Agent Node) -- der gerade
+    überwunden werden soll.
+\end{itemize}
+
+\paragraph{Begründung:}
+Das Single-Step-Design ist die direkte Umsetzung des Transparenzziels aus der
+Forschungsfrage. Amershi et al.\ (2019) formulieren in Guideline H7 (Human-AI
+Interaction): \textit{``Support efficient invocation -- make it easy for people
+to invoke or dismiss the AI system.''} \cite{amershi2019guidelines}. Das duale
+Ausgabe-Routing (Action Required / Final Answer) realisiert genau dieses Prinzip:
+Jeder Schritt ist ein Checkpoint, an dem ein Operator entscheiden kann.
+
+\subsection{Entscheidung 2: Duales Ausgabe-Routing}
+
+\paragraph{Gewählter Ansatz:}
+Der Node besitzt zwei Ausgänge:
+\begin{itemize}
+  \item \textbf{Output 0 -- Action Required:} Aktiviert, wenn das \ac{LLM} ein
+    weiteres Tool aufrufen möchte.
+  \item \textbf{Output 1 -- Final Answer:} Aktiviert, wenn das \ac{LLM} die Aufgabe
+    als abgeschlossen erklärt.
+\end{itemize}
+
+\paragraph{Alternative -- Single-Output mit Typ-Flag:}
+Ein einzelner Ausgangspfad mit einem \texttt{isFinalAnswer}-Boolefeld; ein
+nachgelagerter If-Node routet. Nachteil: die Routing-Logik liegt außerhalb des
+ReAct-Nodes und muss vom Workflow-Entwickler manuell konfiguriert werden.
+
+\paragraph{Begründung:}
+Das duale Routing kapsel die Terminierungslogik im Node und vereinfacht den
+Workflow-Canvas erheblich.
+
+\subsection{Entscheidung 3: Text-basiertes Prompt-Format vs. Function Calling}
+
+\paragraph{Gewählter Ansatz:}
+Das ReAct-Prompt-Template schreibt ein striktes Zeilenformat vor (\texttt{Thought:},
+\texttt{Action:}, \texttt{Action Input:}, \texttt{Final Answer:}), das per
+Zeilenpräfix-Matching geparst wird.
+
+\paragraph{Alternative -- OpenAI Function Calling:}
+Neuere \ac{LLM}s (GPT-4o, Claude 3) unterstützen natives Function Calling via
+\ac{API}, bei dem das Modell strukturierte JSON-Ausgaben für Werkzeugaufrufe
+produziert. Vorteile: zuverlässigeres Parsing, keine Prompt-Formatierungsregeln
+notwendig. Nachteile:
+\begin{itemize}
+  \item Modellspezifisch: Nicht alle \ac{LLM}s unterstützen Function Calling.
+  \item Weniger transparent: Der \textit{Thought} (Reasoning-Spur) ist beim
+    Function Calling nicht Bestandteil der Standardausgabe.
+\end{itemize}
+
+\paragraph{Begründung:}
+Das textbasierte Format wurde gewählt, weil es modellunabhängig ist und den
+\textit{Thought}-Schritt explizit erzwingt. Der Thought ist das zentrale
+Transparenz-Element des ReAct-Musters; ohne ihn wäre der Agenten-Prozess nicht
+besser auditierbar als die Baseline \cite{yao2022react}.
+
+\subsection{Entscheidung 4: Temperature = 0 als Standard}
+
+Für Tool-Use-Szenarien empfehlen Yao et al.\ (2022) niedrige Temperaturen, da
+deterministische Ausgaben das Parsing der \texttt{Action}/\texttt{Action Input}-Felder
+zuverlässiger machen \cite{yao2022react}. Der Standard-Wert von 0,0 kann vom Nutzer
+erhöht werden, falls kreative Aufgaben bearbeitet werden sollen.
+
+\section{Prompt-Aufbau}
+
+Das Prompt-Template wird durch \texttt{buildReActPrompt(state, tools)} erzeugt.
+Es enthält vier strukturierte Abschnitte:
+
+\begin{enumerate}
+  \item \textbf{Context:} Die natürlichsprachliche Aufgabenbeschreibung aus dem
+    \textit{AgentState}.
+  \item \textbf{Available Tools:} Liste aller Tools als \textit{Name: Beschreibung}-Paare
+    (Toolformer-Format, Schick et al., 2023).
+  \item \textbf{Previous Steps:} Alle bisherigen \ac{TAO}-Tripel aus dem
+    \textit{Memory Stream} (Park et al., 2023).
+  \item \textbf{Output-Anweisungen:} Striktes Format für Thought/Action/Final Answer.
+\end{enumerate}
+
+\section{Antwort-Parsing}
+
+Die Funktion \texttt{parseReActResponse(raw)} implementiert einen einfachen
+Zeilenpräfix-Parser ohne externe Bibliotheken. Abgedeckte Szenarien:
+\begin{itemize}
+  \item Normale Action-Antwort (Thought + Action + Action Input)
+  \item Final-Answer-Antwort (Thought + Final Answer)
+  \item Nicht-JSON-Action-Input (wird als \texttt{\{raw: "..."\}} gekapselt)
+  \item Fehlende Felder (Fehlerbehandlung mit sprechender Fehlermeldung)
+\end{itemize}
+
+\section{Human-in-the-Loop}
+
+Das \texttt{humanInTheLoop}-Flag (Boolean, Standard: \texttt{false}) versieht die
+Ausgabe mit einem \texttt{awaitingApproval}-Kennzeichen. In Verbindung mit einem
+n8n-\textit{Wait}-Node kann der Workflow so konfiguriert werden, dass er nach jeder
+Action auf eine manuelle Freigabe wartet, bevor der Tool-Node ausgeführt wird.
+Amershi et al.\ (2019) betonen, dass HITL-Mechanismen ein zentrales Qualitätsmerkmal
+menschenzentrierter KI-Systeme sind \cite{amershi2019guidelines}.
+
+\section{Testergebnisse}
+
+\begin{table}[H]
+  \centering
+  \caption{Testabdeckung ReActLoopNode}
+  \label{tab:coverage-react}
+  \begin{tabular}{lrrrr}
+    \toprule
+    \textbf{Metrik} & \textbf{Statements} & \textbf{Branches} & \textbf{Functions} & \textbf{Lines} \\
+    \midrule
+    Ergebnis & 100\,\% & 82,05\,\% & 100\,\% & 100\,\% \\
+    Zielgröße & $\geq 80\,\%$ & $\geq 75\,\%$ & $\geq 80\,\%$ & $\geq 80\,\%$ \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\section{Bezug zur Forschungsfrage}
+
+Der \textit{ReActLoopNode} ist die direkte Antwort auf \textbf{TF2} (Transparenz):
+Jeder \ac{TAO}-Zyklus wird als diskreter Node-Durchlauf im Canvas sichtbar. Das
+HITL-Flag adressiert die Kontrollierbarkeits-Komponente der Forschungsfrage; die
+\texttt{maxIterations}-Grenze verhindert unkontrollierte Ausführungen.
+
+% =============================================================================
+% KAPITEL 6: EVALUATION
+% =============================================================================
+\chapter{Evaluation}
+
+\section{Evaluationsrahmen nach Design Science Research}
+
+Die Evaluation folgt dem DSR-Evaluationsrahmen nach Hevner et al.\ (2004), der den
+Vergleich des Artefakts mit einer Baseline und einer Referenz-Implementierung einfordert
+\cite{hevner2004design}. Drei Implementierungen werden untersucht:
+
+\begin{table}[H]
+  \centering
+  \caption{Evaluierte Implementierungen}
+  \label{tab:eval-implementations}
+  \begin{tabularx}{\textwidth}{llX}
+    \toprule
+    \textbf{Bezeichnung} & \textbf{System} & \textbf{Beschreibung} \\
+    \midrule
+    Baseline  & Standard n8n  & n8n AI Agent Node + HTTP-Request-Nodes für ChromaDB \\
+    Artefakt  & Agentic Pack  & Die drei Custom Nodes dieser Arbeit \\
+    Referenz  & LangChain     & LangChain ReAct Agent (Python), außerhalb n8n \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\section{Benchmark-Szenarien}
+
+\subsection{SC-01: Data Pipeline}
+
+\paragraph{Beschreibung:}
+Der Agent ruft alle ausstehenden Bestellungen (\texttt{status='pending'}) aus einer
+simulierten SQL-Datenbank ab, transformiert sie in das ERP-Format (Felder:
+\texttt{order\_id}, \texttt{customer\_name}, \texttt{total\_eur}) und überträgt das
+Ergebnis an das ERP-System.
+
+\paragraph{Relevanz:}
+SC-01 testet die Integrationstiefe und Tool-Verkettungsfähigkeit. Autonome
+Agenten-Frameworks (LangChain, AutoGPT) verfügen nicht über native ERP- oder
+Datenbankverbindungen; die Hypothese ist, dass das Artefakt hier einen messbaren
+Vorteil bei \texttt{integration\_score} und \texttt{node\_count} aufweist.
+
+\paragraph{Erwarteter Ablauf:}
+\texttt{sql\_query} $\to$ \texttt{transform\_data} $\to$ \texttt{erp\_push} $\to$ Final Answer
+(3 Schritte)
+
+\subsection{SC-02: RAG Question Answering}
+
+\paragraph{Beschreibung:}
+Der Agent beantwortet eine Frage über interne Unternehmensdokumente (\textit{Welchen
+Gesamtumsatz erzielte Acme GmbH in Q2 2024?}) mittels semantischer Suche im
+VectorStoreNode.
+
+\paragraph{Relevanz:}
+SC-02 misst die RAG-Effizienz. Die Hypothese ist, dass der native \textit{VectorStoreNode}
+niedrigere \texttt{latency\_ms} und \texttt{node\_count} aufweist als die
+HTTP-Baseline (3 Nodes $\to$ 1 Node). Zusätzlich werden RAG-spezifische Metriken
+erhoben (Precision@1, Precision@3).
+
+\subsection{SC-03: Error Recovery}
+
+\paragraph{Beschreibung:}
+In Schritt 1 wird ein injizierter Datenbankfehler (Timeout) ausgelöst. Der Agent
+muss den Fehler erkennen, eine Fallback-Strategie wählen und die Aufgabe (Top-5
+überfällige Rechnungen ins ERP) trotzdem abschließen.
+
+\paragraph{Relevanz:}
+SC-03 testet die Zustandspersistenz über Fehler hinweg. In der Baseline-Implementierung
+gibt es keine persistente Zustandsverwaltung; ein Fehler erzwingt einen kompletten
+Neustart. Das Artefakt kann den Zustand nach dem Fehler laden und direkt fortsetzen.
+Die Hypothese lautet: \texttt{error\_recovery\_success = true} für das Artefakt,
+\texttt{false} für die Baseline.
+
+\section{Erhobene Metriken}
+
+\subsection{Quantitative Metriken}
+
+\begin{table}[H]
+  \centering
+  \caption{Quantitative Benchmark-Metriken}
+  \label{tab:metrics-quant}
+  \begin{tabularx}{\textwidth}{llX}
+    \toprule
+    \textbf{Metrik} & \textbf{Typ} & \textbf{Beschreibung} \\
+    \midrule
+    \texttt{token\_count\_total}    & int  & Summe aller Input- und Output-Tokens \\
+    \texttt{node\_count}            & int  & Anzahl der Nodes im n8n-Workflow \\
+    \texttt{steps\_to\_completion}  & int  & Anzahl ReAct-Iterationen bis Final Answer \\
+    \texttt{success}                & bool & Aufgabe korrekt abgeschlossen \\
+    \texttt{error\_recovery\_success} & bool & Fehler-Recovery erfolgreich (nur SC-03) \\
+    \texttt{latency\_ms}            & int  & Wanduhrzeit in Millisekunden \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\subsection{Qualitative Metriken}
+\label{sec:qualitative-metriken}
+
+Die qualitativen Metriken werden vom Evaluator (Thesis-Autor) anhand eines
+standardisierten Scoring-Bogens bewertet (Skala 1--5), der auf den
+Human-AI-Interaction-Guidelines von Amershi et al.\ (2019) basiert \cite{amershi2019guidelines}.
+Im Unterschied zu den quantitativen Metriken weisen die qualitativen Scores keine
+Run-to-Run-Varianz auf: Sie spiegeln strukturelle Architektureigenschaften wider, die
+sich zwischen Ausführungen nicht verändern. Ob ein Ansatz jeden Reasoning-Schritt im
+Canvas sichtbar macht oder nicht, ist eine Design-Eigenschaft, keine zufällige
+Messgröße. Die Scores werden daher pro Ansatz einmalig festgelegt und gelten für alle
+Runs gleichermaßen. Die Limitation, dass die Bewertung durch den Thesis-Autor vorgenommen
+wird, ist in Abschnitt~\ref{sec:limitations} adressiert.
+
+\begin{table}[H]
+  \centering
+  \caption{Qualitative Benchmark-Metriken (1--5 Punkte)}
+  \label{tab:metrics-qual}
+  \begin{tabularx}{\textwidth}{lX}
+    \toprule
+    \textbf{Metrik} & \textbf{Beschreibung und Scoring-Kriterien} \\
+    \midrule
+    \texttt{transparency\_score}
+      & 5: Alle Entscheidungsschritte sichtbar und auditierbar; 1: keine Sichtbarkeit \\
+    \texttt{controllability\_score}
+      & 5: Menschliche Eingriffe an jedem Schritt möglich; 1: keine Eingriffsmöglichkeit \\
+    \texttt{integration\_score}
+      & 5: Anbindung an ERP/DB mit 0 zusätzlichen Entwicklungsschritten; 1: vollständige Neuentwicklung \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\section{Ergebnis-Dateiformat}
+
+Jeder Benchmark-Lauf wird als \ac{JSON}-Datei in \texttt{evaluation/results/}
+gespeichert (Namensschema: \texttt{\{SC-ID\}\_\{approach\}\_\{run\_id\}.json}):
+
+\begin{lstlisting}[caption={Beispiel-Ergebnisdatei SC-01\_artefact\_run001.json},
+  label=lst:result-example]
+{
+  "scenario_id": "SC-01",
+  "approach": "artefact",
+  "run_id": "run001",
+  "timestamp": "2025-05-01T10:00:00.000Z",
+  "token_count_total": 1842,
+  "node_count": 5,
+  "steps_to_completion": 3,
+  "success": true,
+  "error_recovery_success": null,
+  "latency_ms": 4230,
+  "transparency_score": 5,
+  "controllability_score": 4,
+  "integration_score": 5,
+  "notes": "Completed in 3 steps: sql_query -> transform_data -> erp_push"
+}
+\end{lstlisting}
+
+\section{Hypothesen}
+
+Auf Basis der theoretischen Grundlagen (Kapitel~2) und der Implementierungsentscheidungen
+(Kapitel~3--5) werden die folgenden Hypothesen formuliert:
+
+\begin{table}[H]
+  \centering
+  \caption{Evaluations-Hypothesen}
+  \label{tab:hypothesen}
+  \begin{tabularx}{\textwidth}{llXl}
+    \toprule
+    \textbf{ID} & \textbf{Metrik} & \textbf{Hypothese} & \textbf{Szenario} \\
+    \midrule
+    H1 & \texttt{node\_count}           & Artefakt $<$ Baseline (mind. 3 weniger) & SC-01, SC-02 \\
+    H2 & \texttt{steps\_to\_completion} & Artefakt $\approx$ Baseline (kein signifikanter Unterschied) & alle \\
+    H3 & \texttt{transparency\_score}   & Artefakt (5) $>$ Baseline (2--3) & alle \\
+    H4 & \texttt{controllability\_score}& Artefakt (4--5) $>$ Baseline (1--2) & alle \\
+    H5 & \texttt{error\_recovery\_success} & Artefakt = \texttt{true}, Baseline = \texttt{false} & SC-03 \\
+    H6 & \texttt{integration\_score}    & Artefakt $\geq$ Referenz (LangChain) & SC-01 \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\noindent\textit{Anmerkung zu H1 und H2:} Die Hypothesen H1 (\texttt{node\_count}:
+Artefakt $<$ Baseline) und H2 (Steps: Artefakt $\approx$ Baseline) basieren auf der
+Annahme, dass Kompaktheit ein Qualitätsmerkmal agentischer Systeme darstellt.
+Bandara et al.\ (2025) widersprechen dieser Annahme ausdrücklich: Höhere
+Node-Granularität verbessert die Beobachtbarkeit des Systems und vereinfacht das
+Debugging einzelner Reasoning-Schritte, auch wenn sie die Workflow-Komplexität
+erhöht \cite{bandara2025practical}. Die Ablehnung von H1 und H2 in der
+Hypothesenauswertung (Abschnitt~\ref{sec:hypothesenauswertung}) wird vor diesem
+Hintergrund als wissenschaftlicher Erkenntnisgewinn -- nicht als Artefakt-Schwäche --
+eingestuft.
+
+\section{Analyse-Werkzeuge}
+
+Drei Skripte unterstützen die Durchführung und Auswertung der Benchmark-Runs:
+
+\begin{description}
+  \item[\texttt{run\_reference\_batch.py}] Führt alle drei LangChain-Referenz-Szenarien
+    automatisiert je $n$ Mal aus und speichert die Ergebnisse als
+    \texttt{SC-XX\_reference\_run00N.json}. Aufruf:
+    \texttt{python evaluation/analysis/run\_reference\_batch.py --runs 4}
+
+  \item[\texttt{record\_n8n\_run.py}] Interaktiver Helper zum Erfassen manuell
+    ausgeführter n8n-Runs (Artefakt und Baseline). Fragt Token-Anzahl, Schritte und
+    Latenz ab und speichert das Ergebnis im korrekten JSON-Format.
+
+  \item[\texttt{compare.py}] Liest alle Ergebnis-JSON-Dateien, aggregiert
+    Mittelwert~$\pm$~Standardabweichung pro (Szenario, Ansatz)-Kombination und
+    generiert \LaTeX-Tabellen sowie matplotlib-Balkendiagramme. Aufruf:
+    \texttt{python evaluation/analysis/compare.py --latex}
+\end{description}
+
+% =============================================================================
+\section{Ergebnisse}
+% =============================================================================
+
+Die folgenden Tabellen dokumentieren die Messergebnisse aller drei Benchmark-Szenarien.
+Jede Ansatz-Szenario-Kombination wurde \textbf{neunmal ausgeführt} (n\,=\,9); die Tabellen
+zeigen Mittelwert $\pm$ Standardabweichung über alle Runs. Die quantitativen Metriken
+\texttt{latency\_ms}, \texttt{token\_count\_total} und \texttt{steps\_to\_completion}
+können zwischen Runs leicht variieren (LLM-Nichtdeterminismus, API-Latenz); die
+qualitativen Scores sind strukturell festgelegt (vgl.\ Abschnitt~\ref{sec:qualitative-metriken}).
+Als \ac{LLM} wurde einheitlich \textit{GPT-4o mini} (OpenAI, 2024) mit
+\texttt{temperature\,=\,0} verwendet. Die Referenz-Implementierung basiert
+auf LangChain 0.3 mit LangGraph~1.0; die Baseline nutzt den nativen n8n-AI-Agent-Node.
+Die Referenz-Runs wurden automatisiert mittels
+\texttt{evaluation/analysis/run\_reference\_batch.py} durchgeführt;
+n8n-Runs (Artefakt, Baseline) wurden manuell über die n8n-Oberfläche ausgeführt.
+
+\noindent\textit{Externe Einordnung der Absolutlatenzen:}
+Amir (2026) misst für einen einfachen n8n-Workflow ohne LLM-Aufruf eine
+Durchschnittslatenz von 1{,}23\,s (Variationsbreite: 1{,}03--2{,}79\,s)
+\cite{amir2026evaluating}. Dieser Wert repräsentiert den reinen
+n8n-Orchestrierungs-Overhead bei deterministischen Abläufen. Die in
+dieser Arbeit gemessenen Latenzen von 3--11\,s liegen damit um eine
+Größenordnung darüber; die Differenz ist vollständig auf LLM-Inferenz
+(GPT-4o mini) und -- in SC-02 -- auf Embedding-Berechnungen
+(\textit{text-embedding-3-small}) zurückzuführen, nicht auf
+n8n-Plattformoverhead.
+
+\subsection{SC-01: Data Pipeline}
+
+\begin{table}[H]
+  \centering
+  \caption{Messergebnisse SC-01 -- Data Pipeline (n\,=\,9, Mittelwert $\pm$ Std)}
+  \label{tab:results-sc01}
+  \begin{tabular}{lrrr}
+    \toprule
+    \textbf{Metrik} & \textbf{Baseline} & \textbf{Artefakt} & \textbf{Referenz} \\
+    \midrule
+    Token-Anzahl (gesamt)      & $3\,020 \pm 8$           & $2\,139 \pm 1$            & $\mathbf{1\,470 \pm 124}$ \\
+    Node-Anzahl (Canvas)       & 5                        & 6                         & 1 \\
+    Schritte bis Abschluss     & 4                        & 7                         & \textbf{3} \\
+    Erfolg                     & \textbf{0\,\%}           & \textbf{100\,\%}          & \textbf{100\,\%} \\
+    Latenz (ms)                & $7\,493 \pm 2\,675$      & $10\,570 \pm 2\,040$      & $\mathbf{6\,861 \pm 1\,296}$ \\
+    Transparenz (1--5)         & 2                        & \textbf{5}                & 2 \\
+    Steuerbarkeit (1--5)       & 2                        & \textbf{4}                & 1 \\
+    Integrationsaufwand (1--5) & 3                        & \textbf{4}                & 3 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\noindent\textit{Anmerkung:} Die Baseline schlug in allen 9 Runs fehl (Erfolgsrate 0\,\%),
+da der native AI-Agent-Node Transform-Ergebnisse nicht korrekt in den nachfolgenden
+Tool-Aufruf weitergibt (erp\_push erhielt jeweils ein leeres Payload). Das Artefakt
+erzielte 100\,\% Erfolgsrate bei stabilen Token-Werten ($\sigma = 1$). Die höhere
+Schritt\-anzahl (7 vs.\ 3) ist strukturell bedingt und erklärt gleichzeitig den
+Transparenzvorsprung.
+
+\subsection{SC-02: RAG Question Answering}
+
+\begin{table}[H]
+  \centering
+  \caption{Messergebnisse SC-02 -- RAG Q\&A (n\,=\,9, Mittelwert $\pm$ Std)}
+  \label{tab:results-sc02}
+  \begin{tabular}{lrrr}
+    \toprule
+    \textbf{Metrik} & \textbf{Baseline} & \textbf{Artefakt} & \textbf{Referenz} \\
+    \midrule
+    Token-Anzahl (gesamt)      & $1\,157 \pm 0$           & $729 \pm 67$              & $\mathbf{590 \pm 1}$ \\
+    Node-Anzahl (Canvas)       & 4                        & 10                        & 1 \\
+    Schritte bis Abschluss     & 2                        & 3                         & \textbf{1} \\
+    Erfolg                     & 100\,\%                  & 100\,\%                   & 100\,\% \\
+    Latenz (ms)                & $\mathbf{3\,305 \pm 322}$ & $7\,262 \pm 2\,156$      & $3\,539 \pm 1\,840$ \\
+    Transparenz (1--5)         & 2                        & \textbf{5}                & 2 \\
+    Steuerbarkeit (1--5)       & 2                        & \textbf{4}                & 1 \\
+    Integrationsaufwand (1--5) & 3                        & \textbf{5}                & 3 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\noindent\textit{Anmerkung:} Das Artefakt erzielte den höchsten Integrations-Score (5/5)
+durch native ChromaDB-Anbindung ohne HTTP-Workaround. Die Token-Varianz beim Artefakt
+($\sigma = 67$) erklärt sich durch Run~1, der aufgrund von Embedding-Neuberechnungen
+900 Tokens benötigte; die Folge-Runs stabilisierten sich bei $\approx 700$ Tokens.
+Die Baseline erzielte die niedrigste Latenz (3\,305\,ms), weil ihr Code-Tool den
+Embedding-Aufruf durch einen hardkodierten Platzhalter ersetzt und damit keine echte
+semantische Ähnlichkeitssuche durchführt -- dies ist kein Performance-Vorteil, sondern
+ein Qualitätsmangel der Baseline-Implementierung. Das Artefakt führt stattdessen einen
+vollständigen ChromaDB-Embedding-Aufruf durch; der Mehraufwand von rund 4\,s gegenüber
+der Baseline entspricht der tatsächlichen Inferenzzeit des Embedding-Modells
+\textit{text-embedding-3-small}. Zum Vergleich: Amir (2026) misst für reine
+n8n-Workflow-Ausführungen ohne KI-Komponenten 1{,}23\,s; der gesamte Latenz-Mehraufwand
+in SC-02 ist damit auf Embedding- und LLM-Inferenz zurückzuführen
+\cite{amir2026evaluating}.
+
+\subsection{SC-03: Error Recovery}
+
+\begin{table}[H]
+  \centering
+  \caption{Messergebnisse SC-03 -- Error Recovery (n\,=\,9, Mittelwert $\pm$ Std)}
+  \label{tab:results-sc03}
+  \begin{tabular}{lrrr}
+    \toprule
+    \textbf{Metrik} & \textbf{Baseline} & \textbf{Artefakt} & \textbf{Referenz} \\
+    \midrule
+    Token-Anzahl (gesamt)      & $2\,493 \pm 2$           & $\mathbf{1\,895 \pm 37}$  & $2\,036 \pm 9$ \\
+    Node-Anzahl (Canvas)       & 6                        & 6                         & 1 \\
+    Schritte bis Abschluss     & 3                        & 5                         & \textbf{3} \\
+    Erfolg                     & 100\,\%                  & 100\,\%                   & 100\,\% \\
+    Fehler-Recovery (n=9)      & 9/9 (sichtbar: Nein)     & n.a.$^{*}$                & 9/9 (sichtbar: Nein) \\
+    Latenz (ms)                & $10\,690 \pm 2\,655$     & $11\,219 \pm 1\,860$      & $\mathbf{10\,527 \pm 907}$ \\
+    Transparenz (1--5)         & 2                        & \textbf{5}                & 2 \\
+    Steuerbarkeit (1--5)       & 2                        & \textbf{4}                & 1 \\
+    Integrationsaufwand (1--5) & 3                        & \textbf{4}                & 3 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\noindent$^{*}$\textit{Anmerkung Fehler-Recovery:} In den 9 Mess-Runs wurde beim
+Artefakt kein Fehler injiziert. Ursache ist das Double-Step-Design des
+\textit{ReActLoopNode}: Schritt~1 schreibt die sql\_query-Aktion in den AgentState,
+bevor Schritt~2 das Tool ausführt. Da die Fehlerinjektions-Prüfung
+(\texttt{history.some(step => step.action === 'sql\_query')}) Schritt~1 bereits sieht,
+behandelt sie Schritt~2 als Wiederholungsversuch und liefert direkt Daten. Ein früherer
+Pilot-Run mit angepasster Injektionslogik zeigte, dass das Artefakt Fehler korrekt
+erkennt und per \texttt{retry\_with\_fallback} behandelt. Baseline und Referenz
+recoverten in 9/9 Runs erfolgreich, allerdings ohne den Prozess im Canvas
+nachvollziehbar zu machen. Das Artefakt verbrauchte mit $1\,895 \pm 37$ Tokens
+deutlich weniger als Baseline ($2\,493 \pm 2$) und Referenz ($2\,036 \pm 9$).
+
+\subsection{Hypothesenauswertung}
+\label{sec:hypothesenauswertung}
+
+\begin{table}[H]
+  \centering
+  \caption{Ergebnis der Hypothesenprüfung}
+  \label{tab:hypothesen-ergebnis}
+  \begin{tabularx}{\textwidth}{llXl}
+    \toprule
+    \textbf{ID} & \textbf{Hypothese} & \textbf{Beobachtung} & \textbf{Ergebnis} \\
+    \midrule
+    H1 & \texttt{node\_count}: Artefakt $<$ Baseline & SC-01: 6 vs.\ 5; SC-02: 10 vs.\ 4 & \textbf{Abgelehnt} \\
+    H2 & Steps: Artefakt $\approx$ Baseline & SC-01: 7 vs.\ 4; SC-03: 5 vs.\ 3 & \textbf{Abgelehnt} \\
+    H3 & Transparenz: Artefakt (5) $>$ Baseline & 5/5 vs.\ 2/5 in allen Szenarien & \textbf{Bestätigt} \\
+    H4 & Steuerbarkeit: Artefakt $>$ Baseline & 4/5 vs.\ 2/5 in allen Szenarien & \textbf{Bestätigt} \\
+    H5 & Error Recovery: Artefakt = true & SC-03: Baseline/Referenz 9/9 recovered; Artefakt: Injektion nicht ausgelöst (Double-Step) & \textbf{Nicht testbar} \\
+    H6 & Integration: Artefakt $\geq$ Referenz & SC-02: 5/5 vs.\ 3/5 (LangChain) & \textbf{Bestätigt} \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\noindent H1 und H2 wurden abgelehnt: Das Artefakt verwendet mehr Nodes (SC-02: 10)
+und mehr Schritte als erwartet, da jeder \ac{TAO}-Zyklus als eigene Node-Instanz
+materialisiert wird. Diese höhere Node-Anzahl ist allerdings bewusst so gewählt: Jeder
+Reasoning-Schritt wird als eigener Node sichtbar, was die in H3 und H4 gemessenen
+Transparenz- und Steuerbarkeits-Vorteile erst ermöglicht. H2 zeigte außerdem, dass
+die Baseline in SC-01 mit durchschnittlich 4 Schritten (nicht 1, wie ursprünglich
+erwartet) arbeitet -- der AI Agent Node erzeugt intern mehrere LLM-Aufrufe, die im
+Canvas nicht sichtbar sind.
+
+H5 konnte aufgrund eines Implementierungsdetails nicht wie geplant getestet werden:
+Das Double-Step-Design des \textit{ReActLoopNode} schreibt die Aktion
+\texttt{sql\_query} bereits in Schritt~1 (Sendephase) in den AgentState, bevor das
+Tool in Schritt~2 tatsächlich ausgeführt wird. Die Fehlerinjektion in SC-03 prüft
+\texttt{history.some(step => step.action === 'sql\_query')} und löst daher bei
+Schritt~2 aus -- interpretiert ihn als Retry-Versuch und gibt sofort Erfolgsdaten
+zurück. In allen 9 Artefakt-Runs wurde der injizierte Fehler nie ausgelöst.
+Baseline und Referenz recoverten jeweils in 9/9 Runs, allerdings als interne
+Black-Box-Logik ohne Canvas-Sichtbarkeit. H5 wird daher als \textit{nicht testbar}
+eingestuft; die Ursache ist ein bekanntes Architekturdetail, das in
+Abschnitt~\ref{sec:limitations} diskutiert wird.
+
+Nicht alle Ergebnisse entsprachen den ursprünglichen Erwartungen. Auffällig war, dass
+das Artefakt in SC-01 mehr Schritte benötigte als die Referenzimplementierung
+($7{,}0$ vs.\ $3{,}0$), dabei aber weniger Tokens verbrauchte
+($2\,139 \pm 1$ vs.\ $1\,470 \pm 124$). Der Grund: Der LangChain-Agent verarbeitet
+in jedem Schritt den vollständigen History-Kontext mit, während der
+\textit{ReActLoopNode} bei jedem Aufruf nur den laufend aktualisierten Zustand
+übergibt. Erwartet wurde außerdem, dass SC-03 (Error Recovery) für die Baseline
+besonders schwierig sein würde -- tatsächlich konnte sie den Fehler durch internes
+Retry-Verhalten abfangen. Allerdings war dieser Vorgang im Workflow nicht sichtbar,
+was den Transparenz-Unterschied (5/5 vs.\ 2/5) besonders deutlich machte.
+
+% =============================================================================
+% KAPITEL 7: DISKUSSION UND FAZIT
+% =============================================================================
+\chapter{Diskussion und Fazit}
+
+\section{Beantwortung der Forschungsfrage}
+
+\paragraph{TF1 -- Machbarkeit:}
+Die Implementierung der drei Custom Nodes zeigt, dass das ReAct-Muster innerhalb des
+n8n-Custom-Node-Mechanismus realisierbar ist. Alle drei Nodes wurden in TypeScript 5.x
+mit strikter Typisierung implementiert; 83 Jest-Tests bestätigen die Korrektheit der
+Kernlogik auf Unit-Ebene (Gesamtabdeckung: 97,66\,\% Statements). Ob das System sich
+auch unter produktiven Lastbedingungen und mit echten Drittsystem-Verbindungen bewährt,
+wurde im Rahmen dieser Arbeit nicht getestet. \textbf{TF1 wird mit Ja beantwortet.}
+
+\paragraph{TF2 -- Transparenz:}
+Das Single-Step-Design des \textit{ReActLoopNode} macht jeden \ac{TAO}-Zyklus als
+diskretes Canvas-Element sichtbar. Der \textit{AgentStateNode} materialisiert den
+vollständigen Memory Stream als \ac{JSON}-Objekt, das nach jeder Ausführung
+inspizierbar ist. Im Vergleich dazu verbergen sowohl die Baseline (AI Agent Node)
+als auch autonome Frameworks (AutoGPT, Claude Code) ihren Entscheidungsprozess.
+Die Messungen bestätigen dies: Das Artefakt erzielte in allen drei Szenarien
+\texttt{transparency\_score}\,=\,5/5 und \texttt{controllability\_score}\,=\,4/5,
+während Baseline und Referenz jeweils 2/5 bzw.\ 1/5 erreichten (vgl.\
+Tabellen~\ref{tab:results-sc01}--\ref{tab:results-sc03}).
+\textbf{TF2 wird mit Ja beantwortet.}
+
+\paragraph{TF3 -- Integration:}
+Der \textit{VectorStoreNode} ersetzt die aus drei Nodes bestehende HTTP-Workaround-Lösung
+der Baseline durch eine einzige native ChromaDB-Integration
+(SC-02: \texttt{integration\_score}\,=\,5/5 gegenüber 3/5 für die Baseline). Zu beachten ist,
+dass die geringere Konfigurationshürde beim VectorStoreNode nicht die Gesamt-Node-Zahl
+reduziert -- das Artefakt verwendet in SC-02 insgesamt 10 Nodes gegenüber 4 bei der Baseline.
+\textbf{TF3 wird mit Ja beantwortet.}
+
+\section{Stärken und Einschränkungen des Artefakts}
+
+Die Evaluation zeigt ein differenziertes Bild: Das Artefakt hat klare Stärken in
+bestimmten Bereichen, erkauft diese aber durch Komplexität und Aufwand an anderer
+Stelle.
+
+\begin{description}
+  \item[Transparenz durch Visualisierung:] Der n8n-Canvas macht jeden
+    Reasoning-Schritt als eigenes Element sichtbar -- ein Vorteil, der in der Evaluation
+    durch den höchsten Transparenz-Score (5/5) in allen drei Szenarien bestätigt wird.
+    Der Preis dafür ist ein größerer Workflow: SC-02 benötigt 10 Nodes im Vergleich
+    zu 4 bei der Baseline. Bandara et al.\ (2025) beschreiben dieses Ergebnis als
+    erwartetes Merkmal des \textit{Single-Responsibility}-Prinzips (Best Practice~4):
+    Jede Node trägt exakt eine konzeptuelle Verantwortung, was Observierbarkeit und
+    Debuggbarkeit verbessert \cite{bandara2025practical}. Die höhere Node-Anzahl ist
+    damit kein Qualitätsmangel, sondern eine direkte Konsequenz des
+    \textit{One-Agent-One-Tool}-Designs (Best Practice~3): Jeder Schritt wird als
+    diskrete, testbare Einheit materialisiert -- ein bewusster Transparenzgewinn auf
+    Kosten der Workflow-Kompaktheit \cite{bandara2025practical}. In einfachen Szenarien
+    ohne Zustandsverwaltungsbedarf überwiegt der Aufwand den Transparenzgewinn
+    möglicherweise trotzdem.
+
+  \item[Konfiguration im visuellen Editor:] Prompt-Templates und Loop-Parameter
+    lassen sich über die n8n-Oberfläche anpassen, ohne Code zu ändern -- ein Ansatz,
+    der dem Prinzip extern verwalteter Prompts entspricht, das Bandara et al.\ (2025)
+    als Best Practice~5 für produktive agentische Systeme empfehlen
+    \cite{bandara2025practical}. Allerdings setzt die Definition von Tool-Schemas
+    und die Interpretation der LLM-Ausgaben weiterhin technisches Verständnis voraus;
+    die Behauptung, das System sei für vollständig nicht-technische Nutzer geeignet,
+    wäre übertrieben.
+
+  \item[n8n-Ökosystem-Integration:] Da das Artefakt innerhalb von n8n läuft,
+    kann es auf dessen vorhandene Konnektoren zugreifen (Datenbanken, REST-APIs etc.),
+    ohne eigene Integrationen schreiben zu müssen. Das ist ein echter Vorteil gegenüber
+    Python-basierten Frameworks, die für jede externe Verbindung eigene Bibliotheken
+    benötigen.
+
+  \item[Self-Hosted und datenschutzkonform:] Weil alles lokal betrieben werden kann,
+    verlassen keine Prozessdaten die eigene Infrastruktur. Dies ist für Unternehmen mit
+    strengen Datenschutzanforderungen relevant, setzt aber voraus, dass auch das
+    eingesetzte LLM lokal oder unter einem Datenverarbeitungsvertrag betrieben wird.
+
+  \item[Manueller Eingriff pro Schritt (Human-in-the-Loop):] Das
+    \texttt{humanInTheLoop}-Flag ist im \textit{ReActLoopNode} implementiert, wurde
+    aber in den Benchmark-Szenarien dieser Arbeit nicht getestet. Ob es sich im
+    produktiven Einsatz bewährt, bleibt offen.
+\end{description}
+
+\section{Limitationen}
+\label{sec:limitations}
+
+\begin{enumerate}
+  \item \textbf{Performance-Overhead durch Serialisierung:} Die explizite JSON-Serialisierung
+    des Agentenzustands zwischen Node-Ausführungen erzeugt einen geringen Overhead
+    gegenüber In-Memory-Frameworks wie LangChain. Bei sehr langen Agenten-Läufen
+    ($>$100 Schritte) kann das History-Array den n8n-Daten\-übertragungspuffer belasten.
+
+  \item \textbf{Single-LLM-Architektur:} Das Artefakt setzt einen einzelnen \ac{LLM}-Agenten
+    ein. Multi-Agenten-Szenarien (CrewAI, AutoGen) sind mit dem aktuellen Design
+    nicht abgebildet.
+
+  \item \textbf{Embedding-Modell-Abhängigkeit:} Der \textit{VectorStoreNode} setzt
+    auf OpenAI-Embeddings. Lokale Modelle (Ollama) sind als Erweiterungspunkt
+    vorgesehen, aber noch nicht implementiert.
+
+  \item \textbf{Evaluations-Stichprobengröße:} Mit n\,=\,9 Runs pro Ansatz-Szenario-Kombination
+    ist die statistische Aussagekraft begrenzt. Für eine signifikanzbasierte Auswertung
+    wären $n \geq 30$ notwendig. Die hier gewählte Stichprobengröße ist für eine
+    Bachelorarbeit üblich und erlaubt die Berichterstattung von Mittelwert und
+    Standardabweichung, nicht aber inferenzstatistische Schlüsse. Zum Vergleich:
+    Amir (2026) verwendet für einen deutlich einfacheren n8n-Workflow ohne LLM
+    n\,=\,20 manuelle und n\,=\,25 automatisierte Runs und stellt dieselbe
+    Einschränkung fest -- die Stichprobengröße sei ausreichend für
+    Trenddarstellungen, nicht aber für inferenzstatistische Schlüsse
+    \cite{amir2026evaluating}. Die Wahl von n\,=\,9 in dieser Arbeit ist damit
+    im Kontext ähnlicher Low-Code-Evaluationsstudien vertretbar. Zudem wurden die
+    Tool-Antworten simuliert; Evaluationen mit echten ERP- und Datenbanksystemen
+    könnten abweichende Latenz-Werte ergeben.
+
+  \item \textbf{Qualitative Bewertung durch den Autor:} Die qualitativen Scores
+    (Transparenz, Kontrollierbarkeit, Integration) wurden vom Thesis-Autor selbst
+    vergeben. Interrater-Reliabilität wurde nicht gemessen. Da die Scores strukturelle
+    Architektureigenschaften widerspiegeln (nicht subjektive Präferenzen), ist das
+    Risiko eines Confirmation Bias gering, aber nicht ausschließbar.
+
+  \item \textbf{n8n-Versionsabhängigkeit:} Die Custom Nodes sind gegen
+    \texttt{n8n-workflow@1.17.0} implementiert. Breaking Changes in der n8n-\ac{API}
+    könnten Anpassungen erfordern.
+\end{enumerate}
+
+Während der Implementierung traten einige unerwartete technische Hürden auf. Die
+gravierendste war eine Breaking Change in der ChromaDB-API (ab v0.5): Der
+\texttt{IncludeEnum}-Typ, auf den der \textit{VectorStoreNode} ursprünglich
+zurückgriff, wurde entfernt und lieferte zur Laufzeit einen schwer interpretierbaren
+Fehler. Ähnlich problematisch war die Inkompatibilität des gpt-5.4-mini-Modells mit
+n8n's AI Agent Node -- diese zeigte sich erst beim ersten Testlauf, nicht beim Build.
+Solche Schnittstellenprobleme sind in der Praxis zeitaufwändiger als die eigentliche
+Implementierungsarbeit, im wissenschaftlichen Bericht aber oft unsichtbar. Sie zeigen,
+dass der Entwicklungsaufwand für plattformübergreifende KI-Komponenten stark von der
+Stabilität externer APIs abhängt.
+
+\section{Ausblick}
+
+Die vorliegende Arbeit eröffnet mehrere vielversprechende Forschungsrichtungen:
+
+\begin{description}
+  \item[Multi-Agenten-Erweiterung:] Die Implementierung eines
+    \textit{AgentRouterNode}, der mehrere spezialisierte Agenten koordiniert
+    (ähnlich CrewAI), innerhalb des n8n-Canvas.
+
+  \item[Lokale Embedding-Modelle:] Integration von Ollama als Embedding-Provider für
+    vollständig offline-fähige, datenschutzkonforme RAG-Workflows.
+
+  \item[Adaptives Memory Management:] Implementierung eines \textit{Retrieval-augmented
+    Memory} nach Park et al.\ (2023): Statt den vollständigen Memory Stream an das
+    \ac{LLM} zu übergeben, werden nur die relevantesten vergangenen Schritte via
+    semantische Suche abgerufen.
+
+  \item[Produktive Benchmark-Evaluation:] Durchführung der Szenarien SC-01--SC-03
+    mit echten ERP- und Datenbankverbindungen in einer Produktivumgebung, um die
+    Latenz- und Token-Hypothesen empirisch zu validieren.
+
+  \item[Formale Verifikation:] Anwendung von Property-Based-Testing (z.\,B.
+    \texttt{fast-check}) auf die reinen Zustandsfunktionen des \textit{AgentStateNode}
+    zur Erhöhung der Korrektheitsgaran\-tien.
+\end{description}
+
+\section{Fazit}
+
+Die vorliegende Arbeit demonstriert, dass eine zustandsorientierte, transparente
+Agenten-Architektur innerhalb von n8n durch drei spezialisierte Custom Nodes realisierbar
+ist. Das entwickelte \textit{n8n-Agentic-Pack} kombiniert \ac{LLM}-gestützte Agenten
+mit der visuellen, enterprise-tauglichen Workflow-Umgebung von n8n -- ein Ansatz, der
+in der bisherigen Literatur kaum systematisch erprobt wurde.
+
+Die Forschungsfrage wird in allen drei Teilaspekten bejaht: Das Artefakt ist innerhalb
+von n8n realisierbar (TF1), macht Agenten-Entscheidungen sichtbarer als die untersuchten
+Alternativen (TF2), und der \textit{VectorStoreNode} reduziert den Integrationsaufwand
+für ChromaDB gegenüber der HTTP-Workaround-Baseline (TF3). Gleichzeitig zeigen die
+Messergebnisse, dass diese Vorteile nicht kostenlos kommen: Das Artefakt ist in
+SC-02 rund doppelt so langsam wie die Baseline und erzeugt komplexere Workflows.
+Für einfache Anwendungsfälle ohne Zustandsverwaltung ist der schlankere Basisansatz
+in n8n weiterhin die pragmatischere Lösung.
+
+Was diese Arbeit dennoch zeigt: n8n lässt sich als Laufzeitumgebung für KI-Agenten
+einsetzen -- und dabei bleibt der Entscheidungsprozess für alle Beteiligten sichtbar,
+was in betrieblichen Anwendungen oft wichtiger ist als reine Ausführungsgeschwindigkeit.
+
+% =============================================================================
+% LITERATURVERZEICHNIS
+% =============================================================================
+\newpage
+\addcontentsline{toc}{chapter}{Literaturverzeichnis}
+\renewcommand{\bibname}{Literaturverzeichnis}
+
+\begin{thebibliography}{99}
+
+\bibitem{amershi2019guidelines}
+  Amershi, S., Weld, D., Vorvoreanu, M., Fourney, A., Nushi, B., Collisson, P.,
+  Suh, J., Iqbal, S., Bennett, P.~N., Inkpen, K., Teevan, J., Kikin-Gil, R.,
+  \& Horvitz, E. (2019).
+  \textit{Guidelines for Human-AI Interaction}.
+  In \textit{Proceedings of the 2019 CHI Conference on Human Factors in Computing
+  Systems (CHI '19)}, Glasgow, Scotland.
+  \url{https://doi.org/10.1145/3290605.3300233}
+
+\bibitem{amir2026evaluating}
+  Amir, A.~R. (2026).
+  Evaluating Workflow Automation Efficiency Using n8n:
+  A Small-Scale Business Case Study.
+  arXiv:2602.01311 [cs.SE].
+  \url{https://doi.org/10.48550/arXiv.2602.01311}
+
+\bibitem{bandara2025practical}
+  Bandara, E., Gore, R., Foytik, P., Shetty, S., Mukkamala, R., Rahman, A.,
+  Liang, X., Bouk, S.~H., Hass, A., Rajapakse, S., Keong, N.~W.,
+  De~Zoysa, K., Withanage, A., \& Loganathan, N. (2025).
+  A Practical Guide for Designing, Developing, and Deploying
+  Production-Grade Agentic AI Workflows.
+  arXiv:2512.08769 [cs.AI].
+  \url{https://doi.org/10.48550/arXiv.2512.08769}
+
+\bibitem{hevner2004design}
+  Hevner, A.~R., March, S.~T., Park, J., \& Ram, S. (2004).
+  Design Science in Information Systems Research.
+  \textit{MIS Quarterly}, 28(1), 75--105.
+  \url{https://doi.org/10.2307/25148625}
+
+\bibitem{lewis2020retrieval}
+  Lewis, P., Perez, E., Piktus, A., Petroni, F., Karpukhin, V., Goyal, N.,
+  Küttler, H., Lewis, M., Yih, W., Rocktäschel, T., Riedel, S., \& Kiela, D. (2020).
+  Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks.
+  \textit{Advances in Neural Information Processing Systems (NeurIPS)}, 33, 9459--9474.
+  \url{https://doi.org/10.48550/arXiv.2005.11401}
+
+\bibitem{luo2021characteristics}
+  Luo, Y., Liang, P., Wang, C., Shahin, M., \& Zhan, J. (2021).
+  Characteristics and Challenges of Low-Code Development:
+  The Practitioners' Perspective.
+  \textit{Proceedings of the 15th ACM/IEEE International Symposium on Empirical
+  Software Engineering and Measurement (ESEM)}, 1--11.
+  \url{https://doi.org/10.1145/3475716.3475782}
+
+\bibitem{openai2023gpt4}
+  OpenAI. (2023).
+  \textit{GPT-4 Technical Report}.
+  arXiv:2303.08774.
+  \url{https://doi.org/10.48550/arXiv.2303.08774}
+
+\bibitem{park2023generative}
+  Park, J.~S., O'Brien, J.~C., Cai, C.~J., Morris, M.~R., Liang, P.,
+  \& Bernstein, M.~S. (2023).
+  Generative Agents: Interactive Simulacra of Human Behavior.
+  \textit{Proceedings of the 36th Annual ACM Symposium on User Interface Software and
+  Technology (UIST '23)}.
+  \url{https://doi.org/10.1145/3586183.3606763}
+
+\bibitem{schick2023toolformer}
+  Schick, T., Dwivedi-Yu, J., Dessì, R., Raileanu, R., Lomeli, M.,
+  Zettlemoyer, L., Cancedda, N., \& Scialom, T. (2023).
+  Toolformer: Language Models Can Teach Themselves to Use Tools.
+  \textit{Advances in Neural Information Processing Systems (NeurIPS)}.
+  \url{https://doi.org/10.48550/arXiv.2302.04761}
+
+\bibitem{turing1950computing}
+  Turing, A.~M. (1950).
+  Computing Machinery and Intelligence.
+  \textit{Mind}, 59(236), 433--460.
+  \url{https://doi.org/10.1093/mind/LIX.236.433}
+
+\bibitem{vaswani2017attention}
+  Vaswani, A., Shazeer, N., Parmar, N., Uszkoreit, J., Jones, L.,
+  Gomez, A.~N., Kaiser, Ł., \& Polosukhin, I. (2017).
+  Attention Is All You Need.
+  \textit{Advances in Neural Information Processing Systems (NeurIPS)}, 30.
+  \url{https://doi.org/10.48550/arXiv.1706.03762}
+
+\bibitem{wang2023survey}
+  Wang, L., Ma, C., Feng, X., Zhang, Z., Yang, H., Zhang, J., Chen, Z.,
+  Tang, J., Chen, X., Lin, Y., Zhao, W.~X., Wei, Z., \& Wen, J. (2023).
+  A Survey on Large Language Model based Autonomous Agents.
+  \textit{Frontiers of Computer Science}, 18(6), 186345.
+  \url{https://doi.org/10.48550/arXiv.2308.11432}
+
+\bibitem{waszkowski2019lowcode}
+  Waszkowski, R. (2019).
+  Low-code platform for automating business processes in manufacturing.
+  \textit{IFAC-PapersOnLine}, 52(10), 376--381.
+  \url{https://doi.org/10.1016/j.ifacol.2019.10.060}
+
+\bibitem{wei2022chain}
+  Wei, J., Wang, X., Schuurmans, D., Bosma, M., Ichter, B., Xia, F.,
+  Chi, E., Le, Q., \& Zhou, D. (2022).
+  Chain-of-Thought Prompting Elicits Reasoning in Large Language Models.
+  \textit{Advances in Neural Information Processing Systems (NeurIPS)}, 35, 24824--24837.
+  \url{https://doi.org/10.48550/arXiv.2201.11903}
+
+\bibitem{yao2022react}
+  Yao, S., Zhao, J., Yu, D., Du, N., Shafran, I., Narasimhan, K., \& Cao, Y. (2022).
+  ReAct: Synergizing Reasoning and Acting in Language Models.
+  \textit{International Conference on Learning Representations (ICLR 2023)}.
+  \url{https://doi.org/10.48550/arXiv.2210.03629}
+
+\end{thebibliography}
+
+\end{document}

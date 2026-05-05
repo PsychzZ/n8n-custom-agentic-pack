@@ -1,0 +1,79 @@
+# ---------------------------------------------------------------------------
+# n8n Agentic Pack — Local Development Environment
+# Provides: n8n (workflow engine) + ChromaDB (vector store)
+#
+# Usage:
+#   docker compose -f docker/docker-compose.yml up -d
+#   docker compose -f docker/docker-compose.yml down
+#
+# n8n UI:      http://localhost:5678
+# ChromaDB:    http://localhost:8000
+# ---------------------------------------------------------------------------
+
+services:
+  # --------------------------------------------------------------------------
+  # ChromaDB — vector database for the RAG pipeline (Lewis et al., 2020)
+  # --------------------------------------------------------------------------
+  chromadb:
+    image: chromadb/chroma:latest
+    container_name: agentic-pack-chromadb
+    ports:
+      - "8000:8000"
+    volumes:
+      - chromadb_data:/chroma/chroma
+    environment:
+      - IS_PERSISTENT=TRUE
+      - PERSIST_DIRECTORY=/chroma/chroma
+      - ANONYMIZED_TELEMETRY=FALSE
+      - CHROMA_SERVER_HOST=0.0.0.0
+      - CHROMA_SERVER_HTTP_PORT=8000
+    # ChromaDB-Image hat kein curl/python/wget — TCP-Check via bash built-in
+    healthcheck:
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/localhost/8000 && exec 3>&-"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+    restart: unless-stopped
+
+  # --------------------------------------------------------------------------
+  # n8n — workflow automation engine
+  # --------------------------------------------------------------------------
+  n8n:
+    # Build our custom image (n8n + pre-installed Agentic Pack nodes)
+    # Rebuild after code changes: docker compose up -d --build
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    image: n8n-agentic-pack:local
+    container_name: agentic-pack-n8n
+    ports:
+      - "5678:5678"
+    volumes:
+      - n8n_data:/home/node/.n8n
+    environment:
+      - N8N_BASIC_AUTH_ACTIVE=false
+      - N8N_HOST=localhost
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - NODE_ENV=production
+      - WEBHOOK_URL=http://localhost:5678/
+      - EXECUTIONS_DATA_SAVE_ON_ERROR=all
+      - EXECUTIONS_DATA_SAVE_ON_SUCCESS=all
+      - N8N_LOG_LEVEL=info
+    depends_on:
+      chromadb:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget --spider -q http://localhost:5678/healthz || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+
+volumes:
+  chromadb_data:
+    driver: local
+  n8n_data:
+    driver: local

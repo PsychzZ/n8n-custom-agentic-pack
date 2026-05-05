@@ -1,0 +1,16 @@
+{
+  "scenario_id": "SC-03",
+  "approach": "baseline",
+  "run_id": "run002",
+  "timestamp": "2026-04-08T16:10:59Z",
+  "token_count_total": 2492,
+  "node_count": 6,
+  "steps_to_completion": 3,
+  "success": true,
+  "error_recovery_success": true,
+  "latency_ms": 9727,
+  "transparency_score": 2,
+  "controllability_score": 2,
+  "integration_score": 3,
+  "notes": "3 LLM calls: retry_with_fallback (sql_query always errors in baseline Code Tool) → erp_push (5 records imported) → FinalAnswer. Error recovery successful but internal to agent black-box. gpt-4o-mini."
+}

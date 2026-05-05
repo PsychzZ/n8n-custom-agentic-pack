@@ -1,0 +1,16 @@
+{
+  "scenario_id": "SC-01",
+  "approach": "baseline",
+  "run_id": "run005",
+  "timestamp": "2026-04-08T14:54:05Z",
+  "token_count_total": 3021,
+  "node_count": 5,
+  "steps_to_completion": 4,
+  "success": false,
+  "error_recovery_success": null,
+  "latency_ms": 5826,
+  "transparency_score": 2,
+  "controllability_score": 2,
+  "integration_score": 3,
+  "notes": "4 LLM calls: sql_query -> transform_data -> erp_push -> FinalAnswer. erp_push sent empty payload (0 records imported) — agent failed to propagate transform_data result into erp_push action_input. No persistent state. gpt-4o-mini."
+}

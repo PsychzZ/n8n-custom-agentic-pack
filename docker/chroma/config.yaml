@@ -1,0 +1,17 @@
+# ChromaDB configuration for the n8n Agentic Pack development environment
+# Docs: https://docs.trychroma.com/deployment/configuration
+
+chroma_server_host: 0.0.0.0
+chroma_server_http_port: 8000
+
+# Persistence
+is_persistent: true
+persist_directory: /chroma/chroma
+
+# Telemetry (disabled for academic / offline use)
+anonymized_telemetry: false
+
+# Auth (disabled for local dev; enable for production)
+# chroma_server_auth_provider: chromadb.auth.token.TokenAuthServerProvider
+# chroma_server_auth_credentials_provider: chromadb.auth.token.TokenConfigServerAuthCredentialsProvider
+# chroma_server_auth_credentials: test-token

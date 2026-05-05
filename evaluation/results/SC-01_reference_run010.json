@@ -1,0 +1,16 @@
+{
+  "scenario_id": "SC-01",
+  "approach": "reference",
+  "run_id": "run010",
+  "timestamp": "2026-04-08T13:43:51.190371+00:00",
+  "token_count_total": 1431,
+  "node_count": 1,
+  "steps_to_completion": 3,
+  "success": true,
+  "error_recovery_success": null,
+  "latency_ms": 5164,
+  "transparency_score": 2,
+  "controllability_score": 1,
+  "integration_score": 3,
+  "notes": "Final Answer: The pending orders have been successfully retrieved, transformed to the ERP format, and pushed to the ERP system. A total of 2 records were imported successfully."
+}

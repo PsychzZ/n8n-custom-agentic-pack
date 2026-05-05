@@ -1,0 +1,18 @@
+{
+  "node": "n8n-nodes-base.vectorStoreNode",
+  "nodeVersion": "1.0",
+  "codexVersion": "1.0",
+  "categories": ["AI", "Data & Storage"],
+  "subcategories": {
+    "AI": ["Vector Stores", "RAG"],
+    "Data & Storage": ["Databases"]
+  },
+  "resources": {
+    "primaryDocumentation": [
+      {
+        "url": "https://github.com/yourusername/n8n-agentic-pack"
+      }
+    ]
+  },
+  "alias": ["vector store", "chroma", "chromadb", "rag", "embeddings", "semantic search"]
+}

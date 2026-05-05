@@ -1,0 +1,167 @@
+{
+  "name": "SC-02 RAG Q&A — Artefakt",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "sc02-001",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [-800, 200]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Prepare SC-02 documents for ChromaDB upsert\nreturn [\n  {\n    json: {\n      id: 'doc-q2-revenue',\n      text: 'Acme GmbH Q2 2024 Revenue Report: Total revenue reached \\u20ac2.4 million. The Software Licenses category contributed 58% of revenue (\\u20ac1.39M), followed by Professional Services at 32% (\\u20ac0.77M) and Hardware at 10% (\\u20ac0.24M).',\n      metadata: {source: 'erp', quarter: 'Q2-2024', company: 'Acme GmbH'}\n    }\n  },\n  {\n    json: {\n      id: 'doc-q1-revenue',\n      text: 'Acme GmbH Q1 2024 Revenue Report: Total revenue was \\u20ac1.9 million. Software Licenses accounted for 55% (\\u20ac1.05M).',\n      metadata: {source: 'erp', quarter: 'Q1-2024', company: 'Acme GmbH'}\n    }\n  },\n  {\n    json: {\n      id: 'doc-competitor',\n      text: 'Competitor analysis Q2 2024: Beta AG reported \\u20ac1.8M total revenue, primarily from Hardware (45%).',\n      metadata: {source: 'market-report', quarter: 'Q2-2024'}\n    }\n  }\n];"
+      },
+      "id": "sc02-002",
+      "name": "Prepare Documents",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-600, 200]
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "chromaUrl": "http://chromadb:8000",
+        "collectionName": "sc02-eval",
+        "documentId": "={{ $json.id }}",
+        "text": "={{ $json.text }}",
+        "metadata": "={{ JSON.stringify($json.metadata) }}",
+        "openAiApiKey": "={{ $env.OPENAI_API_KEY }}"
+      },
+      "id": "sc02-003",
+      "name": "VectorStore: Upsert",
+      "type": "CUSTOM.vectorStoreNode",
+      "typeVersion": 1,
+      "position": [-400, 200]
+    },
+    {
+      "parameters": {
+        "jsCode": "// All 3 docs upserted — return single item to start the agent\nreturn [{ json: { setupComplete: true, docsUpserted: $input.all().length } }];"
+      },
+      "id": "sc02-004",
+      "name": "Init Agent",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-200, 200]
+    },
+    {
+      "parameters": {
+        "operation": "initialize",
+        "context": "Answer the following question using only the information in the internal knowledge base: What was the total revenue of Acme GmbH in Q2 2024, and which product category contributed the most?",
+        "maxSteps": 5,
+        "metadata": "{\"scenarioId\": \"SC-02\", \"approach\": \"artefact\"}"
+      },
+      "id": "sc02-005",
+      "name": "AgentState: Initialize",
+      "type": "CUSTOM.agentStateNode",
+      "typeVersion": 1,
+      "position": [0, 200]
+    },
+    {
+      "parameters": {
+        "openAiApiKey": "={{ $env.OPENAI_API_KEY }}",
+        "llmModel": "gpt-4o-mini",
+        "temperature": 0,
+        "agentState": "={{ JSON.stringify($json) }}",
+        "observation": "={{ $json.observation ?? '' }}",
+        "tools": "[{\"name\":\"vector_search\",\"description\":\"Semantic similarity search over internal documents. Input: {\\\"query\\\": \\\"<search query>\\\", \\\"topK\\\": 3}. Returns relevant document excerpts.\"}]",
+        "maxIterations": 5,
+        "stopCondition": "",
+        "humanInTheLoop": false
+      },
+      "id": "sc02-006",
+      "name": "ReAct Loop",
+      "type": "CUSTOM.reActLoopNode",
+      "typeVersion": 1,
+      "position": [200, 200]
+    },
+    {
+      "parameters": {
+        "operation": "query",
+        "chromaUrl": "http://chromadb:8000",
+        "collectionName": "sc02-eval",
+        "queryText": "={{ $json.actionInput.query ?? $json.actionInput.text ?? 'Acme GmbH Q2 2024 revenue' }}",
+        "topK": 3,
+        "openAiApiKey": "={{ $env.OPENAI_API_KEY }}"
+      },
+      "id": "sc02-007",
+      "name": "VectorStore: Query",
+      "type": "CUSTOM.vectorStoreNode",
+      "typeVersion": 1,
+      "position": [400, 80]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Format VectorStore results as observation string.\n// Re-attach original ReAct Loop data (agentState, thought, action, actionInput)\n// because VectorStore Query overwrites the item with its own output.\nconst reactData = $('ReAct Loop').item.json;\nconst results = $input.item.json.results ?? [];\nconst observation = JSON.stringify({\n  documents: results.map(r => ({\n    id: r.id,\n    text: r.document,\n    relevance: r.distance\n  }))\n});\nreturn [{ json: { ...reactData, observation } }];"
+      },
+      "id": "sc02-008",
+      "name": "Format Observation",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [600, 80]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "currentState": "={{ JSON.stringify($json.agentState) }}",
+        "thought": "={{ $json.thought }}",
+        "action": "={{ $json.action }}",
+        "actionInput": "={{ JSON.stringify($json.actionInput) }}",
+        "observation": "={{ $json.observation }}"
+      },
+      "id": "sc02-009",
+      "name": "AgentState: Update",
+      "type": "CUSTOM.agentStateNode",
+      "typeVersion": 1,
+      "position": [800, 80]
+    },
+    {
+      "parameters": {
+        "jsCode": "const state = $input.item.json;\nconst finalAnswer = state.finalAnswer ?? '';\nconst success = finalAnswer.includes('2.4') || finalAnswer.toLowerCase().includes('software');\nconsole.log('=== SC-02 BENCHMARK RESULT ===');\nconsole.log('Final Answer:', finalAnswer);\nconsole.log('Step Count:', state.stepCount);\nconsole.log('Success:', success);\nreturn [{ json: { finalAnswer, stepCount: state.stepCount, success, reminder: 'Fill in evaluation/results/SC-02_artefact_run001.json' } }];"
+      },
+      "id": "sc02-010",
+      "name": "Record Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [400, 340]
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [[{"node": "Prepare Documents", "type": "main", "index": 0}]]
+    },
+    "Prepare Documents": {
+      "main": [[{"node": "VectorStore: Upsert", "type": "main", "index": 0}]]
+    },
+    "VectorStore: Upsert": {
+      "main": [[{"node": "Init Agent", "type": "main", "index": 0}]]
+    },
+    "Init Agent": {
+      "main": [[{"node": "AgentState: Initialize", "type": "main", "index": 0}]]
+    },
+    "AgentState: Initialize": {
+      "main": [[{"node": "ReAct Loop", "type": "main", "index": 0}]]
+    },
+    "ReAct Loop": {
+      "main": [
+        [{"node": "VectorStore: Query", "type": "main", "index": 0}],
+        [{"node": "Record Result", "type": "main", "index": 0}]
+      ]
+    },
+    "VectorStore: Query": {
+      "main": [[{"node": "Format Observation", "type": "main", "index": 0}]]
+    },
+    "Format Observation": {
+      "main": [[{"node": "AgentState: Update", "type": "main", "index": 0}]]
+    },
+    "AgentState: Update": {
+      "main": [[{"node": "ReAct Loop", "type": "main", "index": 0}]]
+    }
+  },
+  "active": false,
+  "settings": {"executionOrder": "v1"},
+  "meta": {"instanceId": "16bc4f9df83bcae0c8ee331a406544d1f33594270d428b20ec93e043852df6a7"},
+  "tags": [],
+  "_comment": "SC-02 RAG Q&A — Artefakt. Requires OPENAI_API_KEY and ChromaDB running at http://chromadb:8000."
+}

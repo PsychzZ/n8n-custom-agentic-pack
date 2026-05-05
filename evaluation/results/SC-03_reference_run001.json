@@ -1,0 +1,16 @@
+{
+  "scenario_id": "SC-03",
+  "approach": "reference",
+  "run_id": "run_20260408_131535",
+  "timestamp": "2026-04-08T11:15:35.197410+00:00",
+  "token_count_total": 2031,
+  "node_count": 1,
+  "steps_to_completion": 3,
+  "success": true,
+  "error_recovery_success": true,
+  "latency_ms": 11793,
+  "transparency_score": 2,
+  "controllability_score": 1,
+  "integration_score": 3,
+  "notes": "sql_query calls: 1. Error injected: True. Recovered: False. Final Answer: The top-5 overdue invoices have been successfully fetched and pushed to the ERP collection system. Here are the details of the invoices:\n\n1. **Delta GmbH**: \u20ac15,000 (Due Date: 2024-01-15)\n2. **Epsilon"
+}

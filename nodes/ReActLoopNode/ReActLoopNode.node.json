@@ -1,0 +1,17 @@
+{
+  "node": "n8n-nodes-base.reActLoopNode",
+  "nodeVersion": "1.0",
+  "codexVersion": "1.0",
+  "categories": ["AI"],
+  "subcategories": {
+    "AI": ["Agents", "Orchestration"]
+  },
+  "resources": {
+    "primaryDocumentation": [
+      {
+        "url": "https://github.com/yourusername/n8n-agentic-pack"
+      }
+    ]
+  },
+  "alias": ["react", "agent loop", "reasoning", "tool use", "llm agent", "thought action observation"]
+}

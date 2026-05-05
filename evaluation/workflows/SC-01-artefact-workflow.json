@@ -1,0 +1,108 @@
+{
+  "name": "SC-01 Data Pipeline — Artefakt",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "9c1fd2b1-6384-4027-92a9-f6b66b9e0394",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [-608, 112]
+    },
+    {
+      "parameters": {
+        "operation": "initialize",
+        "context": "Retrieve all pending orders (status='pending') from the orders table, transform them to the ERP format (fields: order_id, customer_name, total_eur), and push the result to the ERP system. Confirm success.",
+        "maxSteps": 8,
+        "metadata": "{\"scenarioId\": \"SC-01\", \"approach\": \"artefact\"}"
+      },
+      "id": "a63f72e5-e8c5-4491-8c01-d7ea0d207f62",
+      "name": "AgentState: Initialize",
+      "type": "CUSTOM.agentStateNode",
+      "typeVersion": 1,
+      "position": [-368, 112]
+    },
+    {
+      "parameters": {
+        "openAiApiKey": "={{ $env.OPENAI_API_KEY }}",
+        "llmModel": "gpt-4o-mini",
+        "temperature": 0,
+        "agentState": "={{ JSON.stringify($json) }}",
+        "observation": "={{ $json.observation ?? '' }}",
+        "tools": "[{\"name\":\"sql_query\",\"description\":\"Execute SQL SELECT against the ERP database. Input: {\\\"query\\\": \\\"<SQL>\\\"}\"},{\"name\":\"transform_data\",\"description\":\"Transform raw SQL rows to ERP format. Input: {\\\"rows\\\": [...]}\"},{\"name\":\"erp_push\",\"description\":\"Push transformed data to the ERP system. Input: {\\\"payload\\\": [...]}\"}]",
+        "maxIterations": 8,
+        "stopCondition": "",
+        "humanInTheLoop": false
+      },
+      "id": "04fad675-a16b-4ee5-85a6-0a3b0e22c4ce",
+      "name": "ReAct Loop",
+      "type": "CUSTOM.reActLoopNode",
+      "typeVersion": 1,
+      "position": [-160, 112]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Simulate tool execution based on action\nconst action = $input.item.json.action;\nconst actionInput = $input.item.json.actionInput;\n\nconst mockResponses = {\n  sql_query: {\n    rows: [\n      {order_id: 1001, customer: 'Acme GmbH', total: 1200.50, status: 'pending'},\n      {order_id: 1002, customer: 'Beta AG',   total: 870.00,  status: 'pending'}\n    ]\n  },\n  transform_data: {\n    payload: [\n      {order_id: 1001, customer_name: 'Acme GmbH', total_eur: 1200.50},\n      {order_id: 1002, customer_name: 'Beta AG',   total_eur: 870.00}\n    ]\n  },\n  erp_push: {status: 'ok', recordsImported: 2}\n};\n\nconst observation = JSON.stringify(mockResponses[action] || {error: 'Unknown tool: ' + action});\n\nreturn [{\n  json: {\n    ...$input.item.json,\n    observation\n  }\n}];"
+      },
+      "id": "da23761a-18a1-44ea-8d10-0eecf7f2587a",
+      "name": "Tool Simulator (SC-01)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [80, 0]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "currentState": "={{ JSON.stringify($json.agentState) }}",
+        "thought": "={{ $json.thought }}",
+        "action": "={{ $json.action }}",
+        "actionInput": "={{ JSON.stringify($json.actionInput) }}",
+        "observation": "={{ $json.observation }}"
+      },
+      "id": "bfbbdb57-1d3b-4b60-a160-651363f6cc9a",
+      "name": "AgentState: Update",
+      "type": "CUSTOM.agentStateNode",
+      "typeVersion": 1,
+      "position": [288, 0]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Record benchmark metrics\nconst state = $input.item.json;\nconst finalAnswer = state.finalAnswer;\n\nconsole.log('=== BENCHMARK RESULT ===');\nconsole.log('Final Answer:', finalAnswer);\nconsole.log('Step Count:', state.stepCount);\nconsole.log('=== Fill in evaluation/results/SC-01_artefact_run001.json ===');\n\nreturn [{\n  json: {\n    finalAnswer,\n    stepCount: state.stepCount,\n    success: finalAnswer && finalAnswer.length > 0,\n    reminder: 'Fill in evaluation/results/SC-01_artefact_run001.json'\n  }\n}];"
+      },
+      "id": "a443c30d-8a48-4f91-92d2-b588e9e04b5f",
+      "name": "Record Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [80, 240]
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [[{"node": "AgentState: Initialize", "type": "main", "index": 0}]]
+    },
+    "AgentState: Initialize": {
+      "main": [[{"node": "ReAct Loop", "type": "main", "index": 0}]]
+    },
+    "ReAct Loop": {
+      "main": [
+        [{"node": "Tool Simulator (SC-01)", "type": "main", "index": 0}],
+        [{"node": "Record Result", "type": "main", "index": 0}]
+      ]
+    },
+    "Tool Simulator (SC-01)": {
+      "main": [[{"node": "AgentState: Update", "type": "main", "index": 0}]]
+    },
+    "AgentState: Update": {
+      "main": [[{"node": "ReAct Loop", "type": "main", "index": 0}]]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "instanceId": "16bc4f9df83bcae0c8ee331a406544d1f33594270d428b20ec93e043852df6a7"
+  },
+  "tags": [],
+  "_comment": "SC-01 Data Pipeline Benchmark — Artefakt (n8n Agentic Pack). Requires OPENAI_API_KEY in n8n environment variables."
+}

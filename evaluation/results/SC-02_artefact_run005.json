@@ -1,0 +1,16 @@
+{
+  "scenario_id": "SC-02",
+  "approach": "artefact",
+  "run_id": "run005",
+  "timestamp": "2026-04-08T15:32:14Z",
+  "token_count_total": 700,
+  "node_count": 10,
+  "steps_to_completion": 3,
+  "success": true,
+  "error_recovery_success": null,
+  "latency_ms": 5623,
+  "transparency_score": 5,
+  "controllability_score": 4,
+  "integration_score": 5,
+  "notes": "3 steps: vector_search (send) → vector_search (receive with docs) → FinalAnswer. Correct answer: €2.4M, Software Licenses 58%. ReActLoopNode double-step pattern: step 1 sends action, step 2 receives observation. gpt-4o-mini."
+}

@@ -1,0 +1,16 @@
+{
+  "scenario_id": "SC-02",
+  "approach": "reference",
+  "run_id": "run010",
+  "timestamp": "2026-04-08T13:44:40.840835+00:00",
+  "token_count_total": 591,
+  "node_count": 1,
+  "steps_to_completion": 1,
+  "success": true,
+  "error_recovery_success": null,
+  "latency_ms": 3234,
+  "transparency_score": 2,
+  "controllability_score": 1,
+  "integration_score": 3,
+  "notes": "Final Answer: In Q2 2024, Acme GmbH reported a total revenue of \u20ac2.4 million. The product category that contributed the most was Software Licenses, accounting for 58% of the revenue, which amounts to \u20ac1.39 million."
+}

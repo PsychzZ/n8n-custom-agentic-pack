@@ -1,0 +1,68 @@
+{
+  "name": "SC-02 RAG Q&A — Baseline",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "sc02b-001",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [-600, 200]
+    },
+    {
+      "parameters": {
+        "agent": "conversationalAgent",
+        "promptType": "define",
+        "text": "Answer the following question using only the information from the knowledge base: What was the total revenue of Acme GmbH in Q2 2024, and which product category contributed the most?",
+        "options": {
+          "systemMessage": "You are a Q&A agent. Use the vector_search tool to retrieve relevant information before answering."
+        }
+      },
+      "id": "sc02b-002",
+      "name": "AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [-380, 200]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o-mini",
+        "options": {"temperature": 0}
+      },
+      "id": "sc02b-003",
+      "name": "OpenAI Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [-500, 400],
+      "credentials": {"openAiApi": {"name": "OpenAI account"}}
+    },
+    {
+      "parameters": {
+        "name": "vector_search",
+        "description": "Search the internal knowledge base for relevant documents. Input: search query string.",
+        "jsCode": "// Baseline: vector search implemented as hardcoded Code Tool (workaround — no native ChromaDB node)\n// In a real baseline, this would require multiple HTTP Request nodes to call ChromaDB REST API.\nreturn JSON.stringify({\n  documents: [\n    {id: 'doc-q2-revenue', text: 'Acme GmbH Q2 2024 Revenue Report: Total revenue reached \\u20ac2.4 million. The Software Licenses category contributed 58% of revenue (\\u20ac1.39M), followed by Professional Services at 32% (\\u20ac0.77M) and Hardware at 10% (\\u20ac0.24M).', relevance: 0.95},\n    {id: 'doc-q1-revenue', text: 'Acme GmbH Q1 2024 Revenue Report: Total revenue was \\u20ac1.9 million. Software Licenses accounted for 55% (\\u20ac1.05M).', relevance: 0.72},\n    {id: 'doc-competitor', text: 'Competitor analysis Q2 2024: Beta AG reported \\u20ac1.8M total revenue, primarily from Hardware (45%).', relevance: 0.45}\n  ]\n});"
+      },
+      "id": "sc02b-004",
+      "name": "vector_search",
+      "type": "@n8n/n8n-nodes-langchain.toolCode",
+      "typeVersion": 1,
+      "position": [-260, 400]
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [[{"node": "AI Agent", "type": "main", "index": 0}]]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [[{"node": "AI Agent", "type": "ai_languageModel", "index": 0}]]
+    },
+    "vector_search": {
+      "ai_tool": [[{"node": "AI Agent", "type": "ai_tool", "index": 0}]]
+    }
+  },
+  "active": false,
+  "settings": {"executionOrder": "v1"},
+  "meta": {"instanceId": "16bc4f9df83bcae0c8ee331a406544d1f33594270d428b20ec93e043852df6a7"},
+  "tags": [],
+  "_comment": "SC-02 Baseline — Standard n8n AI Agent. Vector search simulated via Code Tool (no native ChromaDB integration). Model: gpt-4o-mini."
+}

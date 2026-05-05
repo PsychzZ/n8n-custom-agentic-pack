@@ -1,0 +1,98 @@
+{
+  "name": "SC-03 Error Recovery — Baseline",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "sc03b-001",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [-600, 200]
+    },
+    {
+      "parameters": {
+        "agent": "conversationalAgent",
+        "promptType": "define",
+        "text": "Fetch the top-5 overdue invoices from the database (status='overdue', sorted by amount DESC) and push them to the ERP collection system. Handle any database errors gracefully.",
+        "options": {
+          "systemMessage": "You are a data pipeline agent. If sql_query returns an error, use retry_with_fallback to recover. Always push results to ERP after retrieval."
+        }
+      },
+      "id": "sc03b-002",
+      "name": "AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [-380, 200]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o-mini",
+        "options": {"temperature": 0}
+      },
+      "id": "sc03b-003",
+      "name": "OpenAI Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [-500, 400],
+      "credentials": {"openAiApi": {"name": "OpenAI account"}}
+    },
+    {
+      "parameters": {
+        "name": "sql_query",
+        "description": "Execute SQL against the database. May return a connection error on first call.",
+        "jsCode": "// Error injection: first call fails, subsequent calls succeed\n// Note: Code Tools in n8n cannot maintain call state between invocations.\n// This tool always returns the error to simulate worst-case baseline behavior.\nreturn JSON.stringify({__error: true, message: 'Database connection timeout: host db.internal:5432 unreachable after 30s'});"
+      },
+      "id": "sc03b-004",
+      "name": "sql_query",
+      "type": "@n8n/n8n-nodes-langchain.toolCode",
+      "typeVersion": 1,
+      "position": [-260, 340]
+    },
+    {
+      "parameters": {
+        "name": "retry_with_fallback",
+        "description": "Retry last failed database operation. Input: JSON with originalAction and fallbackQuery.",
+        "jsCode": "return JSON.stringify({rows:[\n  {invoice_id:2001,customer:'Delta GmbH',  amount_eur:15000,due_date:'2024-01-15',status:'overdue'},\n  {invoice_id:2002,customer:'Epsilon AG',  amount_eur:8500, due_date:'2024-02-01',status:'overdue'},\n  {invoice_id:2003,customer:'Zeta KG',    amount_eur:6200, due_date:'2024-02-10',status:'overdue'},\n  {invoice_id:2004,customer:'Eta GmbH',   amount_eur:4800, due_date:'2024-02-20',status:'overdue'},\n  {invoice_id:2005,customer:'Theta AG',   amount_eur:3100, due_date:'2024-03-01',status:'overdue'}\n]});"
+      },
+      "id": "sc03b-005",
+      "name": "retry_with_fallback",
+      "type": "@n8n/n8n-nodes-langchain.toolCode",
+      "typeVersion": 1,
+      "position": [-260, 440]
+    },
+    {
+      "parameters": {
+        "name": "erp_push",
+        "description": "Push invoice data to the ERP collection system. Input: JSON with payload array.",
+        "jsCode": "let input; try { input = JSON.parse($input.item.json.query ?? '{}'); } catch(e) { input = {}; }\nconst records = input.payload ?? input.rows ?? [];\nreturn JSON.stringify({status:'ok', recordsImported: records.length || 5});"
+      },
+      "id": "sc03b-006",
+      "name": "erp_push",
+      "type": "@n8n/n8n-nodes-langchain.toolCode",
+      "typeVersion": 1,
+      "position": [-260, 540]
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [[{"node": "AI Agent", "type": "main", "index": 0}]]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [[{"node": "AI Agent", "type": "ai_languageModel", "index": 0}]]
+    },
+    "sql_query": {
+      "ai_tool": [[{"node": "AI Agent", "type": "ai_tool", "index": 0}]]
+    },
+    "retry_with_fallback": {
+      "ai_tool": [[{"node": "AI Agent", "type": "ai_tool", "index": 0}]]
+    },
+    "erp_push": {
+      "ai_tool": [[{"node": "AI Agent", "type": "ai_tool", "index": 0}]]
+    }
+  },
+  "active": false,
+  "settings": {"executionOrder": "v1"},
+  "meta": {"instanceId": "16bc4f9df83bcae0c8ee331a406544d1f33594270d428b20ec93e043852df6a7"},
+  "tags": [],
+  "_comment": "SC-03 Baseline — Standard n8n AI Agent. sql_query always returns error (Code Tools cannot maintain state between calls). Model: gpt-4o-mini."
+}

@@ -1,0 +1,17 @@
+{
+  "node": "n8n-nodes-base.agentStateNode",
+  "nodeVersion": "1.0",
+  "codexVersion": "1.0",
+  "categories": ["AI", "Utility"],
+  "subcategories": {
+    "AI": ["Agents", "Memory"]
+  },
+  "resources": {
+    "primaryDocumentation": [
+      {
+        "url": "https://github.com/yourusername/n8n-agentic-pack"
+      }
+    ]
+  },
+  "alias": ["agent state", "memory", "react loop", "stateful agent"]
+}

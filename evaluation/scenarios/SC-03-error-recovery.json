@@ -1,0 +1,60 @@
+{
+  "scenarioId": "SC-03",
+  "name": "Error Recovery",
+  "description": "Agent encounters a deliberate tool failure mid-execution and must recover using its persisted state. Tests state persistence across failures and retry logic.",
+  "researchContext": "Demonstrates the core advantage of stateful architecture: the agent can resume from the last successful step after an error, rather than restarting from scratch.",
+  "approaches": ["baseline", "artefact", "reference"],
+  "maxSteps": 10,
+  "tools": [
+    {
+      "name": "sql_query",
+      "description": "Execute SQL against the database. Input: {\"query\": \"<SQL>\"}. May return an error on first invocation."
+    },
+    {
+      "name": "retry_with_fallback",
+      "description": "Retry the last failed operation with a fallback strategy. Input: {\"originalAction\": \"<tool>\", \"fallbackQuery\": \"<SQL>\"}."
+    },
+    {
+      "name": "erp_push",
+      "description": "Push data to the ERP system. Input: {\"payload\": [...]}."
+    }
+  ],
+  "initialContext": "Fetch the top-5 overdue invoices from the database (status='overdue', sorted by amount DESC) and push them to the ERP collection system. Handle any database errors gracefully.",
+  "injectedResponses": {
+    "sql_query_attempt_1": {
+      "__error": true,
+      "message": "Database connection timeout: host db.internal:5432 unreachable after 30s"
+    },
+    "retry_with_fallback": {
+      "rows": [
+        {"invoice_id": 2001, "customer": "Delta GmbH", "amount_eur": 15000, "due_date": "2024-01-15", "status": "overdue"},
+        {"invoice_id": 2002, "customer": "Epsilon AG", "amount_eur": 8500, "due_date": "2024-02-01", "status": "overdue"},
+        {"invoice_id": 2003, "customer": "Zeta KG", "amount_eur": 6200, "due_date": "2024-02-10", "status": "overdue"},
+        {"invoice_id": 2004, "customer": "Eta GmbH", "amount_eur": 4800, "due_date": "2024-02-20", "status": "overdue"},
+        {"invoice_id": 2005, "customer": "Theta AG", "amount_eur": 3100, "due_date": "2024-03-01", "status": "overdue"}
+      ]
+    },
+    "erp_push": {"status": "ok", "recordsImported": 5}
+  },
+  "errorInjectionStep": 1,
+  "expectedFinalAnswer": "5 overdue invoices have been successfully pushed to the ERP collection system.",
+  "successCriteria": {
+    "minStepsToCompletion": 3,
+    "maxStepsToCompletion": 7,
+    "requiredActions": ["sql_query", "retry_with_fallback", "erp_push"],
+    "errorRecoverySuccess": true,
+    "statePreservedAcrossError": true,
+    "finalAnswerMustContain": "overdue"
+  },
+  "metrics": {
+    "quantitative": [
+      "token_count_total",
+      "node_count",
+      "steps_to_completion",
+      "success",
+      "error_recovery_success",
+      "latency_ms"
+    ],
+    "qualitative": ["transparency_score", "controllability_score", "integration_score"]
+  }
+}

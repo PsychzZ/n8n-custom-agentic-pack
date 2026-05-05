@@ -1,0 +1,49 @@
+{
+  "scenarioId": "SC-01",
+  "name": "Data Pipeline",
+  "description": "Agent fetches data from a simulated SQL database, transforms it, and pushes the result to a simulated ERP endpoint. Tests integration depth and tool-chaining capability.",
+  "researchContext": "Tests whether the stateful architecture outperforms the baseline in multi-step integration tasks requiring DB and ERP access.",
+  "approaches": ["baseline", "artefact", "reference"],
+  "maxSteps": 8,
+  "tools": [
+    {
+      "name": "sql_query",
+      "description": "Execute a SQL SELECT query. Input: {\"query\": \"<SQL string>\"}. Returns JSON rows."
+    },
+    {
+      "name": "transform_data",
+      "description": "Transform raw SQL rows into ERP-compatible format. Input: {\"rows\": [...]}. Returns transformed payload."
+    },
+    {
+      "name": "erp_push",
+      "description": "Push transformed data to the ERP system via REST. Input: {\"payload\": {...}}. Returns {\"status\": \"ok\"} on success."
+    }
+  ],
+  "initialContext": "Retrieve all pending orders (status='pending') from the orders table, transform them to the ERP format (fields: order_id, customer_name, total_eur), and push the result to the ERP system. Confirm success.",
+  "expectedFinalAnswer": "All pending orders have been successfully pushed to the ERP system.",
+  "injectedResponses": {
+    "sql_query": {
+      "rows": [
+        {"order_id": 1001, "customer": "Acme GmbH", "total": 1200.50, "status": "pending"},
+        {"order_id": 1002, "customer": "Beta AG", "total": 870.00, "status": "pending"}
+      ]
+    },
+    "transform_data": {
+      "payload": [
+        {"order_id": 1001, "customer_name": "Acme GmbH", "total_eur": 1200.50},
+        {"order_id": 1002, "customer_name": "Beta AG", "total_eur": 870.00}
+      ]
+    },
+    "erp_push": {"status": "ok", "recordsImported": 2}
+  },
+  "successCriteria": {
+    "minStepsToCompletion": 3,
+    "maxStepsToCompletion": 6,
+    "requiredActions": ["sql_query", "transform_data", "erp_push"],
+    "finalAnswerMustContain": "ERP"
+  },
+  "metrics": {
+    "quantitative": ["token_count_total", "node_count", "steps_to_completion", "success", "latency_ms"],
+    "qualitative": ["transparency_score", "controllability_score", "integration_score"]
+  }
+}

@@ -1,0 +1,108 @@
+{
+  "name": "SC-01 Data Pipeline — Baseline",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "a1b2c3d4-0001-0001-0001-000000000001",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [-600, 200]
+    },
+    {
+      "parameters": {
+        "agent": "conversationalAgent",
+        "promptType": "define",
+        "text": "Retrieve all pending orders (status='pending') from the orders table, transform them to the ERP format (fields: order_id, customer_name, total_eur), and push the result to the ERP system. Confirm success.",
+        "options": {
+          "systemMessage": "You are a data pipeline agent. Use the available tools step by step to complete the task. Always use sql_query first, then transform_data, then erp_push."
+        }
+      },
+      "id": "a1b2c3d4-0001-0001-0001-000000000002",
+      "name": "AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [-380, 200]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o-mini",
+        "options": {
+          "temperature": 0
+        }
+      },
+      "id": "a1b2c3d4-0001-0001-0001-000000000003",
+      "name": "OpenAI Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [-500, 400],
+      "credentials": {
+        "openAiApi": {
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "name": "sql_query",
+        "description": "Execute SQL SELECT against the ERP database to retrieve orders. Returns rows with order_id, customer, total, status.",
+        "jsCode": "return JSON.stringify({rows:[{order_id:1001,customer:'Acme GmbH',total:1200.50,status:'pending'},{order_id:1002,customer:'Beta AG',total:870.00,status:'pending'}]});"
+      },
+      "id": "a1b2c3d4-0001-0001-0001-000000000004",
+      "name": "sql_query",
+      "type": "@n8n/n8n-nodes-langchain.toolCode",
+      "typeVersion": 1,
+      "position": [-260, 360]
+    },
+    {
+      "parameters": {
+        "name": "transform_data",
+        "description": "Transform raw SQL rows to ERP format. Input must be JSON with a 'rows' array. Returns payload with order_id, customer_name, total_eur.",
+        "jsCode": "let input; try { input = JSON.parse($input.item.json.query ?? '{}'); } catch(e) { input = {}; } const rows = input.rows ?? []; return JSON.stringify({payload: rows.map(r => ({order_id: r.order_id, customer_name: r.customer, total_eur: r.total}))});"
+      },
+      "id": "a1b2c3d4-0001-0001-0001-000000000005",
+      "name": "transform_data",
+      "type": "@n8n/n8n-nodes-langchain.toolCode",
+      "typeVersion": 1,
+      "position": [-260, 460]
+    },
+    {
+      "parameters": {
+        "name": "erp_push",
+        "description": "Push transformed payload to the ERP system. Input must be JSON with a 'payload' array. Returns status and recordsImported count.",
+        "jsCode": "let input; try { input = JSON.parse($input.item.json.query ?? '{}'); } catch(e) { input = {}; } const records = input.payload ?? []; return JSON.stringify({status:'ok', recordsImported: records.length});"
+      },
+      "id": "a1b2c3d4-0001-0001-0001-000000000006",
+      "name": "erp_push",
+      "type": "@n8n/n8n-nodes-langchain.toolCode",
+      "typeVersion": 1,
+      "position": [-260, 560]
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [[{"node": "AI Agent", "type": "main", "index": 0}]]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [[{"node": "AI Agent", "type": "ai_languageModel", "index": 0}]]
+    },
+    "sql_query": {
+      "ai_tool": [[{"node": "AI Agent", "type": "ai_tool", "index": 0}]]
+    },
+    "transform_data": {
+      "ai_tool": [[{"node": "AI Agent", "type": "ai_tool", "index": 0}]]
+    },
+    "erp_push": {
+      "ai_tool": [[{"node": "AI Agent", "type": "ai_tool", "index": 0}]]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "instanceId": "16bc4f9df83bcae0c8ee331a406544d1f33594270d428b20ec93e043852df6a7"
+  },
+  "tags": [],
+  "_comment": "SC-01 Baseline — Standard n8n AI Agent Node. Requires OpenAI credentials configured in n8n Settings → Credentials."
+}
